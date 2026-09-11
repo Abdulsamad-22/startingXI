@@ -8,12 +8,14 @@ import { BenchList } from "./BenchList";
 import { SquadBuilder } from "./SquadBuilder";
 import type { Assignment } from "@/lib/queries/lineup";
 import { ControlBar } from "./ControlBar";
+import { ExportCard } from "./ExportCard";
 
 type Formation = { id: string; name: string; slots: any; format_size: number };
 
 export function LineupBuilder({
   lineupId,
   formations,
+  teamName,
   currentFormation,
   assignments,
   primaryColor,
@@ -21,6 +23,7 @@ export function LineupBuilder({
 }: {
   lineupId: string;
   formations: Formation[];
+  teamName: string;
   currentFormation: Formation;
   assignments: Assignment[];
   primaryColor: string;
@@ -33,40 +36,27 @@ export function LineupBuilder({
   }, [currentFormation.id]);
 
   return (
-    // <div>
-    //   <div className="mb-4">
-    //     <FormationSelect formations={formations} />
-    //   </div>
-
-    //   <Pitch
-    //     lineupId={lineupId}
-    //     assignments={assignments}
-    //     primaryColor={primaryColor}
-    //     secondaryColor={secondaryColor}
-    //   />
-
-    //   <BenchList assignments={assignments} />
-    // </div>
-
     <div className="flex flex-col lg:flex-row gap-6">
       <div className="flex-1 order-1">
-        {/* <FormationSelect formations={formations} /> */}
         <ControlBar
           formations={formations}
           primaryColor={primaryColor}
           secondaryColor={secondaryColor}
         />
-        <Pitch
-          lineupId={lineupId}
-          assignments={assignments}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
-        />
-        <BenchList
-          assignments={assignments}
-          primaryColor={primaryColor}
-          secondaryColor={secondaryColor}
-        />
+
+        <ExportCard teamName={teamName} formationName={currentFormation.name}>
+          <Pitch
+            lineupId={lineupId}
+            assignments={assignments}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+          />
+          <BenchList
+            assignments={assignments}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+          />
+        </ExportCard>
       </div>
       <div className="order-2">
         <SquadBuilder

@@ -31,6 +31,7 @@ function DroppableSlot({
   slot,
   player,
   markerStyle,
+  markerSize,
   primaryColor,
   secondaryColor,
   onOpen,
@@ -68,24 +69,30 @@ function DroppableSlot({
         {markerStyle === "shield" && (
           <ShieldMarker
             color={primaryColor}
-            number={player?.jersey_number ?? slot.slot_index + 1}
+            number={player?.jersey_number}
+            photoUrl={player?.photo_url}
+            size={markerSize}
           />
         )}
         {markerStyle === "jersey" && (
           <JerseyMarker
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
-            number={player?.jersey_number ?? slot.slot_index + 1}
+            number={player?.jersey_number}
+            photoUrl={player?.photo_url}
+            size={markerSize}
           />
         )}
         {markerStyle === "circle" && (
           <CircleMarker
             color={primaryColor}
-            number={player?.jersey_number ?? slot.slot_index + 1}
+            number={player?.jersey_number}
+            photoUrl={player?.photo_url}
+            size={markerSize}
           />
         )}
         {player && (
-          <span className="text-[10px] text-white/80 max-w-[70px] truncate">
+          <span className="text-[0.75rem] text-white/80 max-w-[70px] px-3 py-0.5 rounded-[16px] border border-[#3CEFA1] truncate">
             {player.name}
           </span>
         )}
@@ -146,6 +153,7 @@ export function Pitch({
               key={slot.slot_index}
               slot={slot}
               player={byslot.get(slot.slot_index)}
+              markerSize={markerSize}
               markerStyle={markerStyle}
               primaryColor={primaryColor}
               secondaryColor={secondaryColor}

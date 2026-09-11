@@ -7,6 +7,7 @@ import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { useLineupStore } from "@/lib/store/lineupStore";
 import { updatePlayerInSlot, assignPlayerToSlot } from "@/app/teams/action";
+import { compressImage } from "@/lib/utils/compressPlayerImage";
 
 export function PlayerModal({
   open,
@@ -41,12 +42,18 @@ export function PlayerModal({
     existingPlayer?.photo_url ?? null,
   );
 
-  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) {
-      setPhotoFile(file);
-      setPreview(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Please choose an image under 10MB");
+      return;
     }
+
+    const compressed = await compressImage(file);
+    setPhotoFile(compressed);
+    setPreview(URL.createObjectURL(compressed));
   }
 
   async function handleSubmit(formData: FormData) {

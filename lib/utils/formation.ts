@@ -1,15 +1,19 @@
 type Slot = { slot_index: number; label: string };
-type Assignment = { slot_index: number | null; is_starting: boolean };
+type StorePlayer = {
+  slot_index: number | null;
+  is_starting: boolean;
+  position_group: string;
+};
 
 export function findOpenSlotForPosition(
   slots: Slot[],
-  assignments: Assignment[],
+  players: StorePlayer[],
   positionGroup: string,
 ): number | null {
   const filledSlots = new Set(
-    assignments
-      .filter((a) => a.is_starting && a.slot_index !== null)
-      .map((a) => a.slot_index),
+    players
+      .filter((p) => p.is_starting && p.slot_index !== null)
+      .map((p) => p.slot_index),
   );
 
   const match = slots

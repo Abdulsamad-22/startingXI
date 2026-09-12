@@ -32,3 +32,10 @@ export type Player = {
 
 export const MARKER_STYLES = ["shield", "jersey", "circle"] as const;
 export type MarkerStyle = (typeof MARKER_STYLES)[number];
+
+export const DEFAULT_FORMATION_BY_SIZE: Record<number, string> = {
+  11: "4-3-3",
+  9: "3-2-3",
+  7: "3-2-1",
+  5: "2-1-1",
+};

@@ -18,7 +18,7 @@ export function TeamDetailsForm() {
         <input
           value={teamName}
           onChange={(e) => setTeamDetails({ teamName: e.target.value })}
-          className="bg-[#0E2F21] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+          className="bg-[#0A1A14] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
       </div>
 
@@ -27,11 +27,11 @@ export function TeamDetailsForm() {
         <input
           value={coachName}
           onChange={(e) => setTeamDetails({ coachName: e.target.value })}
-          className="bg-[#0E2F21] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+          className="bg-[#0A1A14] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
       </div>
 
-      <label className="flex items-center justify-between bg-[#0E2F21] rounded-lg px-3 py-2 text-sm">
+      <label className="flex items-center justify-between bg-[#0A1A14] rounded-lg px-3 py-2 text-sm">
         <span>Display coach on lineup</span>
         <button
           type="button"

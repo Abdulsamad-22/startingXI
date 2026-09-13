@@ -73,7 +73,7 @@ export function FormationPanel({
     <div className="flex flex-col gap-4">
       <div>
         <label className="text-xs text-white/60 mb-1 block">Player Count</label>
-        <div className="flex gap-1 bg-[#0E2F21] rounded-lg p-1 w-fit">
+        <div className="flex gap-1 bg-[#0A1A14] rounded-lg p-1 w-fit">
           {[5, 7, 9, 11].map((size) => (
             <button
               key={size}
@@ -96,7 +96,7 @@ export function FormationPanel({
         <select
           value={formationId}
           onChange={(e) => handleFormationSelect(e.target.value)}
-          className="bg-[#0E2F21] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1] w-full"
+          className="bg-[#0A1A14] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1] w-full"
         >
           {filtered.map((f) => (
             <option key={f.id} value={f.id}>

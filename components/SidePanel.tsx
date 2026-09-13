@@ -17,7 +17,7 @@ export function SidePanel({
   if (activeTab !== "Team Details" && activeTab !== "Formation") return null;
 
   return (
-    <div className="w-full md:w-72 bg-[#1D2A25] rounded-xl p-4 shrink-0">
+    <div className="w-full md:w-72 bg-[#343A38] rounded-xl p-4 shrink-0">
       {activeTab === "Team Details" && <TeamDetailsForm />}
       {activeTab === "Formation" && (
         <FormationPanel allFormations={allFormations} />

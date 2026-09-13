@@ -3,6 +3,8 @@ export const POSITION_GROUPS = [
   "CB",
   "LB",
   "RB",
+  "LWB",
+  "RWB",
   "DMF",
   "CMF",
   "AMF",

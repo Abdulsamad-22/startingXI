@@ -2,42 +2,41 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
+import { Select } from "./ui/Select";
 import { ShieldMarker } from "./markers/ShieldMarker";
 import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { useLineupStore } from "@/lib/store/lineupStore";
-import { updatePlayerInSlot, assignPlayerToSlot } from "@/app/teams/action";
+import { POSITION_GROUPS } from "@/lib/types";
 import { compressImage } from "@/lib/utils/compressPlayerImage";
 
 export function PlayerModal({
   open,
   onOpenChange,
-  lineupId,
   slotIndex,
   slotLabel,
-  existingPlayer,
   primaryColor,
   secondaryColor,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  lineupId: string;
   slotIndex: number;
   slotLabel: string;
   primaryColor: string;
   secondaryColor: string;
-  existingPlayer: {
-    id: string;
-    name: string;
-    jersey_number: number;
-    photo_url: string | null;
-  } | null;
 }) {
   const markerStyle = useLineupStore((s) => s.markerStyle);
+  const addOrUpdatePlayer = useLineupStore((s) => s.addOrUpdatePlayer);
+  const existingPlayer = useLineupStore((s) =>
+    s.players.find((p) => p.is_starting && p.slot_index === slotIndex),
+  );
+
   const [isStarting, setIsStarting] = useState(true);
   const [name, setName] = useState(existingPlayer?.name ?? "");
   const [number, setNumber] = useState(existingPlayer?.jersey_number ?? 1);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(
+    existingPlayer?.photo_file ?? null,
+  );
   const [preview, setPreview] = useState<string | null>(
     existingPlayer?.photo_url ?? null,
   );
@@ -45,30 +44,30 @@ export function PlayerModal({
   async function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 10 * 1024 * 1024) {
       alert("Please choose an image under 10MB");
       return;
     }
-
     const compressed = await compressImage(file);
     setPhotoFile(compressed);
     setPreview(URL.createObjectURL(compressed));
   }
 
-  async function handleSubmit(formData: FormData) {
-    formData.set("lineup_id", lineupId);
-    formData.set("slot_index", String(isStarting ? slotIndex : ""));
-    formData.set("is_starting", String(isStarting));
-    formData.set("position_group", slotLabel);
-    if (photoFile) formData.set("photo", photoFile);
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
 
-    if (existingPlayer) {
-      formData.set("player_id", existingPlayer.id);
-      await updatePlayerInSlot(formData);
-    } else {
-      await assignPlayerToSlot(formData);
-    }
+    addOrUpdatePlayer({
+      id: existingPlayer?.id,
+      name,
+      jersey_number: number,
+      position_group: slotLabel,
+      photo_file: photoFile,
+      photo_preview: preview, // added — carries the object URL into the store
+      photo_url: existingPlayer?.photo_url ?? null,
+      is_starting: isStarting,
+      slot_index: isStarting ? slotIndex : null,
+    });
+
     onOpenChange(false);
   }
 
@@ -104,25 +103,33 @@ export function PlayerModal({
 
           <div className="flex justify-center mb-6">
             {markerStyle === "shield" && (
-              <ShieldMarker color={primaryColor} number={number} />
+              <ShieldMarker
+                color={primaryColor}
+                number={number}
+                photoUrl={preview}
+              />
             )}
             {markerStyle === "jersey" && (
               <JerseyMarker
                 primaryColor={primaryColor}
                 secondaryColor={secondaryColor}
                 number={number}
+                photoUrl={preview}
               />
             )}
             {markerStyle === "circle" && (
-              <CircleMarker color={primaryColor} number={number} />
+              <CircleMarker
+                color={primaryColor}
+                number={number}
+                photoUrl={preview}
+              />
             )}
           </div>
 
-          <form action={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-white/60">Name*</label>
               <input
-                name="name"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -133,7 +140,6 @@ export function PlayerModal({
             <div className="flex flex-col gap-1">
               <label className="text-xs text-white/60">Shirt number</label>
               <input
-                name="jersey_number"
                 type="number"
                 min={1}
                 max={99}
@@ -169,7 +175,7 @@ export function PlayerModal({
               type="submit"
               className="bg-[#3CEFA1] text-[#0E2F21] font-bold rounded-lg py-3 mt-2 hover:opacity-90"
             >
-              Add player
+              {existingPlayer ? "Save changes" : "Add player"}
             </button>
           </form>
         </Dialog.Content>

@@ -7,7 +7,7 @@ export function BenchList() {
   const subs = players.filter((p) => !p.is_starting);
 
   return (
-    <div className="mt-4 bg-[#1D2A25] rounded-xl p-4">
+    <div className="mt-4 bg-[#343a38] rounded-xl p-4">
       <h3 className="text-xs text-white/60 mb-3 uppercase tracking-wide">
         Substitutes
       </h3>

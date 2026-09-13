@@ -5,11 +5,13 @@ export function Select({
   options,
   defaultValue,
   ariaLabel,
+  onChange,
 }: {
   name: string;
   options: readonly string[];
   defaultValue?: string;
   ariaLabel?: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <select
@@ -17,6 +19,7 @@ export function Select({
       id={name}
       aria-label={ariaLabel ?? name}
       defaultValue={defaultValue}
+      onChange={(e) => onChange?.(e.target.value)}
       className={styles.select}
     >
       {options.map((opt) => (

@@ -82,7 +82,7 @@ function DroppableSlot({
           />
         )}
         {player && (
-          <span className="text-[0.75rem] text-white/80 max-w-[70px] truncate">
+          <span className="text-[0.875rem] font-medium text-white/80 max-w-[70px] spacing-medium truncate">
             {player.name}
           </span>
         )}
@@ -101,6 +101,7 @@ export function Pitch({
   const { slots, markerStyle, players, swapSlots } = useLineupStore();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [markerSize, setMarkerSize] = useState(40);
+  const pitchStyle = useLineupStore((s) => s.pitchStyle);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -137,34 +138,48 @@ export function Pitch({
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <div className="relative w-full max-w-[420px] mx-auto aspect-[2/3] bg-[#0E2F21] rounded-xl border border-white/10 overflow-hidden">
-        <PitchMarkings />
-        {slots.map((slot) => (
-          <DroppableSlot
-            key={slot.slot_index}
-            slot={slot}
-            player={byslot.get(slot.slot_index)}
-            markerStyle={markerStyle}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-            markerSize={markerSize}
-            onOpen={setActiveSlot}
-          />
-        ))}
+      <div
+        className={pitchStyle === "tilted" ? "[perspective:1200px] py-6" : ""}
+      >
+        <div
+          className="relative w-full max-w-[420px] mx-auto aspect-[2/3] bg-[#0E2F21] rounded-xl border border-white/10 overflow-hidden"
+          style={
+            pitchStyle === "tilted"
+              ? {
+                  transform: "rotateX(30deg)",
+                  boxShadow: "0 30px 60px rgba(0,0,0,0.5)",
+                }
+              : undefined
+          }
+        >
+          <PitchMarkings />
+          {slots.map((slot) => (
+            <DroppableSlot
+              key={slot.slot_index}
+              slot={slot}
+              player={byslot.get(slot.slot_index)}
+              markerStyle={markerStyle}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+              markerSize={markerSize}
+              onOpen={setActiveSlot}
+            />
+          ))}
 
-        {activeSlot !== null && (
-          <PlayerModal
-            open={activeSlot !== null}
-            key={activeSlot}
-            onOpenChange={(open) => !open && setActiveSlot(null)}
-            slotIndex={activeSlot}
-            slotLabel={
-              slots.find((s) => s.slot_index === activeSlot)?.label ?? ""
-            }
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-          />
-        )}
+          {activeSlot !== null && (
+            <PlayerModal
+              open={activeSlot !== null}
+              key={activeSlot}
+              onOpenChange={(open) => !open && setActiveSlot(null)}
+              slotIndex={activeSlot}
+              slotLabel={
+                slots.find((s) => s.slot_index === activeSlot)?.label ?? ""
+              }
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+            />
+          )}
+        </div>
       </div>
     </DndContext>
   );

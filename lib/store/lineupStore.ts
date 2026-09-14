@@ -51,6 +51,7 @@ export type LineupState = {
     isStarting: boolean,
   ) => void;
   swapSlots: (fromSlot: number, toSlot: number) => void;
+  placeBenchPlayerInSlot: (playerId: string, slotIndex: number) => void;
   hydrate: (data: {
     teamId: string;
     lineupId: string;
@@ -164,6 +165,25 @@ export const useLineupStore = create<LineupState>((set, get) => ({
         return p;
       }),
     })),
+
+  placeBenchPlayerInSlot: (playerId: string, slotIndex: number) =>
+    set((state) => {
+      const previousOccupant = state.players.find(
+        (p) => p.is_starting && p.slot_index === slotIndex,
+      );
+
+      return {
+        players: state.players.map((p) => {
+          if (p.id === playerId) {
+            return { ...p, is_starting: true, slot_index: slotIndex };
+          }
+          if (previousOccupant && p.id === previousOccupant.id) {
+            return { ...p, is_starting: false, slot_index: null };
+          }
+          return p;
+        }),
+      };
+    }),
 
   hydrate: (data: {
     teamId: string;

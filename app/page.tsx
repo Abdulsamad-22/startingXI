@@ -27,7 +27,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E2F21] text-white p-6">
+    <div className="min-h-screen bg-[#555958] text-white p-6">
       <div className="flex justify-end mb-4">
         <SavedTeamsButton />
       </div>

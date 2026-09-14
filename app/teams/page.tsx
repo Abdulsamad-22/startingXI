@@ -15,7 +15,7 @@ export default async function TeamsListPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="min-h-screen bg-[#0E2F21] text-white p-6">
+    <div className="min-h-screen bg-[#555958] text-white p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Your Teams</h1>
         <Link
@@ -32,7 +32,7 @@ export default async function TeamsListPage() {
             <Link
               key={team.id}
               href={`/teams/${team.id}`}
-              className="block bg-[#1D2A25] rounded-lg px-4 py-3 hover:bg-[#1D2A25]/70 transition-colors"
+              className="block bg-[#343a38] rounded-lg px-4 py-3 hover:bg-[#1D2A25]/70 transition-colors"
             >
               {team.name}
             </Link>

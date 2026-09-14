@@ -6,10 +6,12 @@ import { POSITION_GROUPS } from "@/lib/types";
 import { useLineupStore } from "@/lib/store/lineupStore";
 import { compressImage } from "@/lib/utils/compressPlayerImage";
 import { findOpenSlotForPosition } from "@/lib/utils/formation";
+import { isNumberTaken } from "@/lib/utils/validation";
 
 export function SquadBuilder({ formatSize }: { formatSize: number }) {
   const players = useLineupStore((s) => s.players);
   const addOrUpdatePlayer = useLineupStore((s) => s.addOrUpdatePlayer);
+  const removePlayer = useLineupStore((s) => s.removePlayer);
 
   const [name, setName] = useState("");
   const [number, setNumber] = useState<number | "">("");
@@ -18,6 +20,7 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
   >(POSITION_GROUPS[0]);
   const [wantsStarting, setWantsStarting] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
+  const [numberError, setNumberError] = useState<string | null>(null);
 
   const startingCount = players.filter((p) => p.is_starting).length;
   const squadFull = startingCount >= formatSize;
@@ -38,6 +41,12 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (number === "") return;
+
+    if (isNumberTaken(players, Number(number))) {
+      setNumberError(`Number ${number} is already taken`);
+      return;
+    }
+    setNumberError(null);
 
     let slotIndex: number | null = null;
     let isStarting = false;
@@ -85,7 +94,7 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-white/60">Squad Number</label>
+          <label className="text-xs text-white/60">Shirt Number</label>
           <input
             value={number}
             onChange={(e) =>
@@ -98,6 +107,7 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
             placeholder="Shirt number"
             className="no-spinner bg-[#0A1A14] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
           />
+          {numberError && <p className="text-xs text-red-400">{numberError}</p>}
         </div>
 
         <div className="flex flex-col gap-1">
@@ -124,7 +134,7 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
             }`}
           >
             <span
-              className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+              className={`absolute top-1 left-0 w-4 h-4 rounded-full bg-white transition-transform ${
                 wantsStarting && !squadFull ? "translate-x-5" : "translate-x-1"
               }`}
             />
@@ -147,9 +157,11 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
       </form>
 
       <div className="flex flex-col gap-1">
-        <p className="text-xs text-white/60 uppercase tracking-wide px-1 mt-2">
-          Starting XI
-        </p>
+        {starters.length > 0 && (
+          <p className="text-xs text-white/60 uppercase tracking-wide px-1 mt-2">
+            Starting XI
+          </p>
+        )}
         {starters.map((p) => (
           <div
             key={p.id}
@@ -160,6 +172,14 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
             </span>
             <span className="flex-1">{p.name}</span>
             <span className="text-xs text-white/40">{p.position_group}</span>
+            <button
+              type="button"
+              onClick={() => removePlayer(p.id)}
+              className="text-white/30 hover:text-red-400 transition-colors"
+              aria-label={`Remove ${p.name}`}
+            >
+              ×
+            </button>
           </div>
         ))}
       </div>
@@ -179,6 +199,14 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
               </span>
               <span className="flex-1">{p.name}</span>
               <span className="text-xs text-white/40">{p.position_group}</span>
+              <button
+                type="button"
+                onClick={() => removePlayer(p.id)}
+                className="text-white/30 hover:text-red-400 transition-colors"
+                aria-label={`Remove ${p.name}`}
+              >
+                ×
+              </button>
             </div>
           ))}
         </div>

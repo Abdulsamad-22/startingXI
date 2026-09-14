@@ -39,7 +39,7 @@ export function TeamDetailsForm() {
           className={`w-10 h-6 rounded-full relative transition-colors ${displayCoach ? "bg-[#3CEFA1]" : "bg-white/20"}`}
         >
           <span
-            className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${displayCoach ? "translate-x-5" : "translate-x-1"}`}
+            className={`absolute top-1 left-0 w-4 h-4 rounded-full bg-white transition-transform ${displayCoach ? "translate-x-5" : "translate-x-1"}`}
           />
         </button>
       </label>

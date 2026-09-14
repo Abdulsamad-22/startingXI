@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { TeamListRow } from "@/components/TeamListRow";
 
 export default async function TeamsListPage() {
   const supabase = await createClient();
@@ -29,13 +30,7 @@ export default async function TeamsListPage() {
       {teams && teams.length > 0 ? (
         <div className="space-y-2">
           {teams.map((team) => (
-            <Link
-              key={team.id}
-              href={`/teams/${team.id}`}
-              className="block bg-[#343a38] rounded-lg px-4 py-3 hover:bg-[#1D2A25]/70 transition-colors"
-            >
-              {team.name}
-            </Link>
+            <TeamListRow key={team.id} team={team} />
           ))}
         </div>
       ) : (

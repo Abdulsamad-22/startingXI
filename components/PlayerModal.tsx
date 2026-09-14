@@ -104,7 +104,7 @@ export function PlayerModal({
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
         <Dialog.Content
           className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                     bg-[#1D2A25] rounded-xl p-6 w-full max-w-sm z-50
+                     bg-[#343a38] rounded-xl p-6 w-full max-w-sm z-50
                      max-h-[85vh] overflow-y-auto"
         >
           <div className="flex bg-[#0A1A14] rounded-full p-1 mb-6">
@@ -178,7 +178,7 @@ export function PlayerModal({
                   );
                   setNumberError(null);
                 }}
-                className="no-spinner bg-[#0A1A14] text-[#fff] rounded-lg px-3 py-2 w-24 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+                className="no-spinner bg-[#0A1A14] text-[#fff] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
               />
             </div>
 

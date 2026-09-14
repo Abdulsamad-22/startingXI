@@ -38,7 +38,7 @@ export function JerseyMarker({
             x="50"
             y="65"
             textAnchor="middle"
-            fontSize="26"
+            fontSize="35"
             fontWeight="bold"
             fill="#0E2F21"
           >

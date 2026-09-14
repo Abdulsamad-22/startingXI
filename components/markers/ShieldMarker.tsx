@@ -66,9 +66,9 @@ export function ShieldMarker({
       ) : number !== undefined ? (
         <text
           x="50"
-          y="62"
+          y="65"
           textAnchor="middle"
-          fontSize="30"
+          fontSize="42"
           fontWeight="bold"
           fill={color}
         >

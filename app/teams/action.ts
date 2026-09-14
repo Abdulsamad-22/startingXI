@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { type LineupState, useLineupStore } from "@/lib/store/lineupStore";
+import { type LineupState } from "@/lib/store/lineupStore";
+import { revalidatePath } from "next/cache";
 
 export async function saveDraft(state: LineupState) {
   const supabase = await createClient();
@@ -94,4 +95,11 @@ export async function createTeam(formData: FormData) {
 
   if (error) throw error;
   return data;
+}
+
+export async function deleteTeam(teamId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("teams").delete().eq("id", teamId);
+  if (error) throw error;
+  revalidatePath("/teams");
 }

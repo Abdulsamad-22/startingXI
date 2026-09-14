@@ -1,15 +1,21 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { useState } from "react";
 
 export function TeamDetailsForm() {
   const { teamName, coachName, displayCoach, crestUrl, setTeamDetails } =
     useLineupStore();
+  const [localPreview, setLocalPreview] = useState<string | null>(null);
 
   function handleCrestChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) setTeamDetails({ crestFile: file });
+    if (!file) return;
+    setTeamDetails({ crestFile: file });
+    setLocalPreview(URL.createObjectURL(file));
   }
+
+  const previewSrc = localPreview ?? crestUrl;
 
   return (
     <div className="flex flex-col gap-4">
@@ -46,19 +52,25 @@ export function TeamDetailsForm() {
 
       <div className="flex flex-col gap-1">
         <label className="text-xs text-white/60">Club logo</label>
-        {crestUrl && (
-          <img
-            src={crestUrl}
-            alt=""
-            className="w-12 h-12 rounded-full object-cover mb-1"
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-full bg-[#343a38] border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+            {previewSrc ? (
+              <img
+                src={previewSrc}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-white/20 text-xs">No logo</span>
+            )}
+          </div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleCrestChange}
+            className="text-sm text-white/60 file:bg-[#3CEFA1] file:text-[#0E2F21] file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:text-xs file:font-semibold"
           />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleCrestChange}
-          className="text-sm text-white/60 file:bg-[#3CEFA1] file:text-[#0E2F21] file:border-0 file:rounded-lg file:px-3 file:py-1.5 file:text-xs file:font-semibold"
-        />
+        </div>
       </div>
     </div>
   );

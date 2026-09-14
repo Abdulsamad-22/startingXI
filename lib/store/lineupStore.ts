@@ -27,6 +27,8 @@ export type LineupState = {
   markerStyle: "shield" | "jersey" | "circle";
   players: DraftPlayer[];
   formationName: string;
+  pitchStyle: "flat" | "tilted";
+  setPitchStyle: (style: "flat" | "tilted") => void;
 
   setTeamDetails: (
     fields: Partial<
@@ -91,11 +93,13 @@ export const useLineupStore = create<LineupState>((set, get) => ({
   markerStyle: "shield",
   players: [],
   formationName: "",
+  pitchStyle: "flat",
 
   setTeamDetails: (fields) => set(fields),
   setFormation: (formationId, formationName, slots) =>
     set({ formationId, formationName, slots }),
   setMarkerStyle: (markerStyle) => set({ markerStyle }),
+  setPitchStyle: (pitchStyle) => set({ pitchStyle }),
 
   addOrUpdatePlayer: (player) =>
     set((state) => {

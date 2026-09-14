@@ -7,7 +7,7 @@ export function CircleMarker({
   size = 34,
 }: {
   color: string;
-  number: number;
+  number: number | undefined;
   photoUrl?: string | null;
   size?: number;
 }) {
@@ -37,13 +37,13 @@ export function CircleMarker({
         </>
       ) : (
         <div
-          className="w-full h-full rounded-full flex items-center justify-center font-bold text-sm"
+          className="w-full h-full rounded-full flex items-center justify-center font-bold text-[22px]"
           style={{ backgroundColor: color, color: "#0E2F21" }}
         >
           {number !== undefined ? (
             number
           ) : (
-            <PlusIcon size={size * 0.5} color="#0E2F21" />
+            <PlusIcon size={size * 0.3} color="#0E2F21" />
           )}
         </div>
       )}

@@ -1,8 +1,9 @@
 "use client";
 
 import { MarkerStyleSelect } from "./MarkerStyleSelect";
+import { PitchStyleSelect } from "./PitchStyleSelect";
 
-const TABS = ["Team Details", "Formation", "Icon"] as const;
+const TABS = ["Team Details", "Formation"] as const;
 export type Tab = (typeof TABS)[number];
 
 export function ControlBar({
@@ -17,8 +18,8 @@ export function ControlBar({
   secondaryColor: string;
 }) {
   return (
-    <div className="bg-[#1D2A25] rounded-xl p-3 mb-4">
-      <div className="flex gap-1 mb-1 overflow-x-auto">
+    <div className="bg-[#1D2A25] rounded-[52px] p-3 mb-4">
+      <div className="flex items-center justify-center gap-1 mb-1 overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -33,16 +34,24 @@ export function ControlBar({
             {tab}
           </button>
         ))}
-      </div>
 
-      {activeTab === "Icon" && (
-        <div className="pt-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/40 uppercase tracking-wide px-2">
+            Icon
+          </span>
           <MarkerStyleSelect
             primaryColor={primaryColor}
             secondaryColor={secondaryColor}
           />
         </div>
-      )}
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/40 uppercase tracking-wide px-2">
+            Pitch
+          </span>
+          <PitchStyleSelect />
+        </div>
+      </div>
     </div>
   );
 }

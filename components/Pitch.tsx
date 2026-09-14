@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  DndContext,
-  useDraggable,
-  useDroppable,
-  DragEndEvent,
-  useSensor,
-  useSensors,
-  PointerSensor,
-} from "@dnd-kit/core";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
 import { useLineupStore } from "@/lib/store/lineupStore";
 import { PlayerModal } from "./PlayerModal";
 import { ShieldMarker } from "./markers/ShieldMarker";
@@ -103,12 +95,6 @@ export function Pitch({
   const [markerSize, setMarkerSize] = useState(40);
   const pitchStyle = useLineupStore((s) => s.pitchStyle);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 }, // must move 8px before it counts as a drag
-    }),
-  );
-
   useEffect(() => {
     function updateSize() {
       if (window.innerWidth >= 1024) setMarkerSize(64);
@@ -126,61 +112,47 @@ export function Pitch({
       .map((p) => [p.slot_index, p]),
   );
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const fromSlot = Number(String(active.id).replace("player-", ""));
-    const toSlot = Number(String(over.id).replace("slot-", ""));
-
-    swapSlots(fromSlot, toSlot);
-  }
-
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <div className={pitchStyle === "tilted" ? "[perspective:1200px] py-6" : ""}>
       <div
-        className={pitchStyle === "tilted" ? "[perspective:1200px] py-6" : ""}
-      >
-        <div
-          className="relative w-full max-w-[420px] mx-auto aspect-[2/3] bg-[#0E2F21] rounded-xl border border-white/10 overflow-hidden"
-          style={
-            pitchStyle === "tilted"
-              ? {
-                  transform: "rotateX(30deg)",
-                  boxShadow: "0 30px 60px rgba(0,0,0,0.5)",
-                }
-              : undefined
-          }
-        >
-          <PitchMarkings />
-          {slots.map((slot) => (
-            <DroppableSlot
-              key={slot.slot_index}
-              slot={slot}
-              player={byslot.get(slot.slot_index)}
-              markerStyle={markerStyle}
-              primaryColor={primaryColor}
-              secondaryColor={secondaryColor}
-              markerSize={markerSize}
-              onOpen={setActiveSlot}
-            />
-          ))}
-
-          {activeSlot !== null && (
-            <PlayerModal
-              open={activeSlot !== null}
-              key={activeSlot}
-              onOpenChange={(open) => !open && setActiveSlot(null)}
-              slotIndex={activeSlot}
-              slotLabel={
-                slots.find((s) => s.slot_index === activeSlot)?.label ?? ""
+        className="relative w-full max-w-[420px] mx-auto aspect-[2/3] bg-[#0E2F21] rounded-xl border border-white/10 overflow-hidden"
+        style={
+          pitchStyle === "tilted"
+            ? {
+                transform: "rotateX(30deg)",
+                boxShadow: "0 30px 60px rgba(0,0,0,0.5)",
               }
-              primaryColor={primaryColor}
-              secondaryColor={secondaryColor}
-            />
-          )}
-        </div>
+            : undefined
+        }
+      >
+        <PitchMarkings />
+        {slots.map((slot) => (
+          <DroppableSlot
+            key={slot.slot_index}
+            slot={slot}
+            player={byslot.get(slot.slot_index)}
+            markerStyle={markerStyle}
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+            markerSize={markerSize}
+            onOpen={setActiveSlot}
+          />
+        ))}
+
+        {activeSlot !== null && (
+          <PlayerModal
+            open={activeSlot !== null}
+            key={activeSlot}
+            onOpenChange={(open) => !open && setActiveSlot(null)}
+            slotIndex={activeSlot}
+            slotLabel={
+              slots.find((s) => s.slot_index === activeSlot)?.label ?? ""
+            }
+            primaryColor={primaryColor}
+            secondaryColor={secondaryColor}
+          />
+        )}
       </div>
-    </DndContext>
+    </div>
   );
 }

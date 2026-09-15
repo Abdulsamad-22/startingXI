@@ -1,7 +1,7 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
-import { PitchMarkings } from "./PitchMarkings";
+import { PitchMarkingsPreview } from "./PitchMarkingsPreview";
 
 export function PitchStyleSelect() {
   const { pitchStyle, setPitchStyle } = useLineupStore();
@@ -18,7 +18,7 @@ export function PitchStyleSelect() {
         }`}
       >
         <div className="relative w-8 h-10 bg-[#0E2F21] rounded-sm overflow-hidden">
-          <PitchMarkings />
+          <PitchMarkingsPreview />
         </div>
       </button>
 
@@ -36,7 +36,7 @@ export function PitchStyleSelect() {
             className="relative w-8 h-10 bg-[#0E2F21] rounded-sm overflow-hidden mx-auto"
             style={{ transform: "rotateX(35deg)" }}
           >
-            <PitchMarkings />
+            <PitchMarkingsPreview />
           </div>
         </div>
       </button>

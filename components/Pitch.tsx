@@ -59,7 +59,7 @@ function DroppableSlot({
         {markerStyle === "jersey" && (
           <JerseyMarker
             primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
+            isGoalkeeper={player?.position_group === 'GK'}
             number={player?.jersey_number}
             photoUrl={player?.photo_url ?? player?.photo_preview}
             size={markerSize}

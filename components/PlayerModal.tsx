@@ -139,7 +139,7 @@ export function PlayerModal({
             {markerStyle === "jersey" && (
               <JerseyMarker
                 primaryColor={primaryColor}
-                secondaryColor={secondaryColor}
+                isGoalkeeper={slotLabel === 'GK'}
                 number={number === "" ? undefined : number}
                 photoUrl={preview}
               />

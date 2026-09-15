@@ -1,5 +1,6 @@
 import { TeamDetailsForm } from "./TeamDetails";
 import { FormationPanel } from "./FormationPanel";
+import { TemplatePanel } from "./TemplatesPanel";
 import type { Tab } from "./ControlBar";
 
 export function SidePanel({
@@ -14,7 +15,12 @@ export function SidePanel({
     format_size: number;
   }[];
 }) {
-  if (activeTab !== "Team Details" && activeTab !== "Formation") return null;
+  if (
+    activeTab !== "Team Details" &&
+    activeTab !== "Formation" &&
+    activeTab !== "Template"
+  )
+    return null;
 
   return (
     <div className="w-full md:w-72 bg-[#343A38] rounded-xl p-4 shrink-0">
@@ -22,6 +28,7 @@ export function SidePanel({
       {activeTab === "Formation" && (
         <FormationPanel allFormations={allFormations} />
       )}
+      {activeTab === "Template" && <TemplatePanel />}
     </div>
   );
 }

@@ -14,10 +14,8 @@ const OPTIONS: { style: MarkerStyle; label: string }[] = [
 
 export function MarkerStyleSelect({
   primaryColor,
-  secondaryColor,
 }: {
   primaryColor: string;
-  secondaryColor: string;
 }) {
   const { markerStyle, setMarkerStyle } = useLineupStore();
 
@@ -41,7 +39,7 @@ export function MarkerStyleSelect({
             {style === "jersey" && (
               <JerseyMarker
                 primaryColor={primaryColor}
-                secondaryColor={secondaryColor}
+                isGoalkeeper={false}
                 number={9}
               />
             )}

@@ -41,7 +41,6 @@ export function ControlBar({
           </span>
           <MarkerStyleSelect
             primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
           />
         </div>
 

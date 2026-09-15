@@ -1,0 +1,63 @@
+export function PitchMarkingsPreview() {
+  return (
+    <svg
+      viewBox="0 0 100 150"
+      className="absolute inset-0 w-full h-full"
+      preserveAspectRatio="none"
+    >
+      <rect
+        x="2"
+        y="2"
+        width="96"
+        height="146"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="3"
+      />
+      <line
+        x1="2"
+        y1="75"
+        x2="98"
+        y2="75"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="3"
+      />
+      <circle
+        cx="50"
+        cy="75"
+        r="10"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="3"
+      />
+      <circle cx="50" cy="75" r="1.5" fill="rgba(255,255,255,0.7)" />
+      <rect
+        x="22"
+        y="2"
+        width="56"
+        height="18"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="3"
+      />
+      <rect
+        x="37"
+        y="130"
+        width="26"
+        height="18"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="3"
+      />
+      <rect
+        x="22"
+        y="130"
+        width="56"
+        height="18"
+        fill="none"
+        stroke="rgba(255,255,255,0.5)"
+        strokeWidth="3"
+      />
+    </svg>
+  );
+}

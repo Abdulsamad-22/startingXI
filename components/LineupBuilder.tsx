@@ -71,7 +71,6 @@ export function LineupBuilder({
 
             <div className="flex-1">
               <ExportCard>
-                <PitchHeader />
                 <Pitch
                   primaryColor={primaryColor}
                   secondaryColor={secondaryColor}

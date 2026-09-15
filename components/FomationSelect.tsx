@@ -10,7 +10,7 @@ export function FormationSelect({ formations }: { formations: Formation[] }) {
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const selected = formations.find((f) => f.id === e.target.value);
-    if (selected) setFormation(selected.id, selected.slots);
+    if (selected) setFormation(selected.id, selected.name, selected.slots);
   }
 
   return (

@@ -1,0 +1,200 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
+import gsap from "gsap";
+import { useLineupStore } from "@/lib/store/lineupStore";
+import { POSITION_GROUPS } from "@/lib/types";
+import { PitchMarkings } from "./PitchMarkings";
+import { ShieldMarker } from "./markers/ShieldMarker";
+import { JerseyMarker } from "./markers/JerseyMarker";
+import { CircleMarker } from "./markers/CircleMarker";
+
+export function AnimatedRevealModal({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const {
+    slots,
+    players,
+    markerStyle,
+    primaryColor,
+    secondaryColor,
+    teamName,
+    formationName,
+  } = useLineupStore();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [playKey, setPlayKey] = useState(0);
+    const [rendering, setRendering] = useState(false)
+const [videoUrl, setVideoUrl] = useState<string | null>(null)
+const [renderError, setRenderError] = useState<string | null>(null)
+
+  const starters = players
+    .filter((p) => p.is_starting && p.slot_index !== null)
+    .sort(
+      (a, b) =>
+        POSITION_GROUPS.indexOf(a.position_group as any) -
+        POSITION_GROUPS.indexOf(b.position_group as any),
+    );
+
+  useEffect(() => {
+    if (!open || !containerRef.current) return;
+
+    // wait one frame so the Dialog's content and marker divs are fully mounted/painted
+    const raf = requestAnimationFrame(() => {
+      const markerEls = containerRef.current?.querySelectorAll(
+        "[data-reveal-marker]",
+      );
+      if (!markerEls || markerEls.length === 0) return;
+
+      gsap.set(markerEls, { opacity: 0, scale: 0.4, y: -24 });
+
+      const tl = gsap.timeline();
+      markerEls.forEach((el, i) => {
+        tl.to(
+          el,
+          { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: "back.out(5)" },
+          i * 0.7,
+        );
+      });
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [open, playKey]);
+
+  async function handleDownload() {
+  if (!videoUrl) return
+  const res = await fetch(videoUrl)
+  const blob = await res.blob()
+  const blobUrl = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = blobUrl
+  link.download = `${teamName.replace(/\s+/g, '-').toLowerCase()}-reveal.mp4`
+  link.click()
+
+  URL.revokeObjectURL(blobUrl)
+}
+
+
+async function handleRenderVideo() {
+  setRendering(true)
+  setRenderError(null)
+  try {
+    const res = await fetch('/api/render-reveal', {
+      method: 'POST',
+      body: JSON.stringify({
+      teamId: useLineupStore.getState().teamId,
+      teamName,
+      formationName,
+      primaryColor,
+      players: starters.map((p) => {
+        const slot = slots.find((s) => s.slot_index === p.slot_index)
+        return {
+          id: p.id,
+          name: p.name,
+          jersey_number: p.jersey_number,
+          photo_url: p.photo_url,
+          slot_x: slot?.x ?? 50,
+          slot_y: slot?.y ?? 50,
+        }
+      }),
+    }),
+    })
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `Request failed with status ${res.status}`)
+    }
+
+    const data = await res.json()
+    setVideoUrl(data.url)
+  } catch (err) {
+    console.error('Render request failed:', err)
+    setRenderError(err instanceof Error ? err.message : 'Something went wrong')
+  } finally {
+    setRendering(false)
+  }
+}
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/70 z-40" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1D2A25] rounded-xl p-4 z-50 max-h-[90vh] overflow-y-auto">
+          <p className="text-sm text-white/60 mb-2 text-center">
+            {teamName} — {formationName}
+          </p>
+
+          <div
+            ref={containerRef}
+            className="relative w-[280px] aspect-[2/3] bg-[#0E2F21] rounded-xl overflow-hidden mx-auto"
+          >
+            <PitchMarkings />
+            {starters.map((p) => {
+              const slot = slots.find((s) => s.slot_index === p.slot_index);
+              if (!slot) return null;
+              const photo = p.photo_url ?? p.photo_preview;
+
+              return (
+                <div
+                  key={p.id}
+                  data-reveal-marker
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1"
+                  style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
+                >
+                  {markerStyle === "shield" && (
+                    <ShieldMarker
+                      color={primaryColor}
+                      number={p.jersey_number}
+                      photoUrl={photo}
+                    />
+                  )}
+                  {markerStyle === "jersey" && (
+                    <JerseyMarker
+                      primaryColor={primaryColor}
+                      isGoalkeeper={p?.position_group === 'GK'}
+                      number={p.jersey_number}
+                      photoUrl={photo}
+                    />
+                  )}
+                  {markerStyle === "circle" && (
+                    <CircleMarker
+                      color={primaryColor}
+                      number={p.jersey_number}
+                      photoUrl={photo}
+                    />
+                  )}
+                  <span className="text-[9px] text-white/80 max-w-[60px] truncate">
+                    {p.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={() => setPlayKey((k) => k + 1)}
+            className="w-full mt-4 bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg py-2 text-sm"
+          >
+            Replay
+          </button>
+          <button onClick={handleRenderVideo} disabled={rendering} className="w-full mt-2 bg-[#3CEFA1] text-[#0E2F21]   font-semibold rounded-lg py-2 text-sm disabled:opacity-50">
+            {rendering ? 'Rendering video...' : 'Download Video'}
+            </button>
+            {videoUrl && (
+                <button
+                   onClick={handleDownload}
+                    className="w-full text-center text-sm text-[#3CEFA1] mt-2"
+                >
+                     Download Video
+                 </button>
+              )}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}

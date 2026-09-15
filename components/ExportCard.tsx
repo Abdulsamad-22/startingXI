@@ -4,10 +4,22 @@ import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import { useLineupStore } from "@/lib/store/lineupStore";
 import { saveDraft } from "@/app/teams/action";
+import { ClassicTemplate } from "./templates/ClassicTemplate";
+import { BroadcastTemplate } from "./templates/BroadcastTemplate";
+import { StadiumTemplate } from "./templates/StadiumTemplate";
+
+const TEMPLATES = {
+  classic: ClassicTemplate,
+  broadcast: BroadcastTemplate,
+  stadium: StadiumTemplate,
+};
 
 export function ExportCard({ children }: { children: React.ReactNode }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  const templateId = useLineupStore((s) => s.templateId);
+
+  const Template = TEMPLATES[templateId];
 
   async function handlePublish() {
     setExporting(true);
@@ -36,7 +48,7 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <div ref={cardRef} className="bg-[#343A38] p-4 rounded-xl">
-        {children}
+        <Template>{children}</Template>
       </div>
 
       <button

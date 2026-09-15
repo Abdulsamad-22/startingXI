@@ -7,6 +7,7 @@ import { saveDraft } from "@/app/teams/action";
 import { ClassicTemplate } from "./templates/ClassicTemplate";
 import { BroadcastTemplate } from "./templates/BroadcastTemplate";
 import { StadiumTemplate } from "./templates/StadiumTemplate";
+import { AnimatedRevealModal } from "./AnimatedRevealModal";
 
 const TEMPLATES = {
   classic: ClassicTemplate,
@@ -18,6 +19,7 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
   const templateId = useLineupStore((s) => s.templateId);
+  const [revealOpen, setRevealOpen] = useState(false);
 
   const Template = TEMPLATES[templateId];
 
@@ -58,6 +60,14 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
       >
         {exporting ? "Saving & Generating..." : "Save & Download"}
       </button>
+
+      <button
+        onClick={() => setRevealOpen(true)}
+        className="w-full bg-[#1D2A25] border border-white/10 text-white font-semibold rounded-lg py-3 mt-2 hover:border-white/20"
+      >
+        Preview Animated Reveal
+      </button>
+      <AnimatedRevealModal open={revealOpen} onOpenChange={setRevealOpen} />
     </div>
   );
 }

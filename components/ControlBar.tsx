@@ -3,7 +3,7 @@
 import { MarkerStyleSelect } from "./MarkerStyleSelect";
 import { PitchStyleSelect } from "./PitchStyleSelect";
 
-const TABS = ["Team Details", "Formation"] as const;
+const TABS = ["Team Details", "Formation", "Template"] as const;
 export type Tab = (typeof TABS)[number];
 
 export function ControlBar({

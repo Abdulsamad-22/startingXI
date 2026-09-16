@@ -25,11 +25,13 @@ export function ClassicTemplate({ children }: { children: React.ReactNode }) {
           />
         )}
         <div>
-          <h2 className="text-2xl font-black uppercase max-w-[320px] truncate">
+          <h2 className="font-heading text-2xl font-black uppercase max-w-[320px] truncate">
             {teamName}
           </h2>
           {displayCoach && coachName && (
-            <p className="text-sm text-white/60">Coach: {coachName}</p>
+            <p className="font-body text-sm text-white/60">
+              Coach: {coachName}
+            </p>
           )}
           <p className="text-[#3CEFA1] font-bold">{formationName}</p>
         </div>

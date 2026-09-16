@@ -40,7 +40,7 @@ export function StadiumTemplate({ children }: { children: React.ReactNode }) {
         )}
         <div>
           <h2
-            className="text-3xl font-black uppercase max-w-[320px] truncate leading-none"
+            className="font-heading text-3xl font-black uppercase max-w-[320px] truncate leading-none"
             style={{ textShadow: `0 0 20px ${primaryColor}55` }}
           >
             {teamName}

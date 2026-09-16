@@ -39,7 +39,9 @@ export function BroadcastTemplate({ children }: { children: React.ReactNode }) {
             {teamName}
           </h2>
           {displayCoach && coachName && (
-            <p className="text-xs text-[#0E2F21]/70">Coach: {coachName}</p>
+            <p className="font-body text-xs text-[#0E2F21]/70">
+              Coach: {coachName}
+            </p>
           )}
         </div>
         <span className="bg-[#0E2F21] text-white text-xs font-bold px-3 py-1 rounded-full">

@@ -50,10 +50,10 @@ export function TeamDetailsForm() {
         </button>
       </label>
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-2">
         <label className="text-xs text-white/60">Club logo</label>
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-full bg-[#343a38] border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+        <div className="flex flex-col items-left gap-3">
+          <div className="w-14 h-14 rounded-full bg-[#343a38] border border-white/30 flex items-center justify-center overflow-hidden shrink-0">
             {previewSrc ? (
               <img
                 src={previewSrc}
@@ -61,7 +61,7 @@ export function TeamDetailsForm() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-white/20 text-xs">No logo</span>
+              <span className="text-white/30 text-xs">Add logo</span>
             )}
           </div>
           <input

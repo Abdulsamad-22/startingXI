@@ -7,7 +7,7 @@ export function CircleMarker({
   size = 34,
 }: {
   color: string;
-  number: number | undefined;
+  number?: number | undefined;
   photoUrl?: string | null;
   size?: number;
 }) {
@@ -37,8 +37,12 @@ export function CircleMarker({
         </>
       ) : (
         <div
-          className="w-full h-full rounded-full flex items-center justify-center font-bold text-[22px]"
-          style={{ backgroundColor: color, color: "#0E2F21" }}
+          className="w-full h-full rounded-full flex items-center justify-center font-bold"
+          style={{
+            backgroundColor: color,
+            color: "#0E2F21",
+            fontSize: size * 0.4,
+          }}
         >
           {number !== undefined ? (
             number

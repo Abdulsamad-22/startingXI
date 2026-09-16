@@ -8,6 +8,7 @@ import { ShieldMarker } from "./markers/ShieldMarker";
 import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { PitchMarkings } from "./PitchMarkings";
+import { PitchTexture } from "./PitchTexture";
 
 function DroppableSlot({
   slot,
@@ -28,6 +29,14 @@ function DroppableSlot({
     id: `player-${slot.slot_index}`,
     disabled: !player,
   });
+  const {
+    jerseyColor,
+    jerseySleeveColor,
+    jerseyCollarColor,
+    jerseyNumberColor,
+    gkJerseyColor,
+    gkNumberColor,
+  } = useLineupStore();
 
   return (
     <div
@@ -58,10 +67,15 @@ function DroppableSlot({
         )}
         {markerStyle === "jersey" && (
           <JerseyMarker
-            primaryColor={primaryColor}
-            isGoalkeeper={player?.position_group === 'GK'}
             number={player?.jersey_number}
             photoUrl={player?.photo_url ?? player?.photo_preview}
+            isGoalkeeper={player?.position_group === "GK"}
+            jerseyColor={jerseyColor}
+            sleeveColor={jerseySleeveColor}
+            collarColor={jerseyCollarColor}
+            numberColor={jerseyNumberColor}
+            gkJerseyColor={gkJerseyColor}
+            gkNumberColor={gkNumberColor}
             size={markerSize}
           />
         )}
@@ -74,7 +88,7 @@ function DroppableSlot({
           />
         )}
         {player && (
-          <span className="text-[0.875rem] font-medium text-white/80 max-w-[70px] spacing-medium truncate">
+          <span className="font-body text-[0.875rem] font-medium text-white/80 max-w-[70px] spacing-medium truncate">
             {player.name}
           </span>
         )}
@@ -90,10 +104,12 @@ export function Pitch({
   primaryColor: string;
   secondaryColor: string;
 }) {
-  const { slots, markerStyle, players, swapSlots } = useLineupStore();
+  const { slots, markerStyle, players } = useLineupStore();
   const [activeSlot, setActiveSlot] = useState<number | null>(null);
   const [markerSize, setMarkerSize] = useState(40);
   const pitchStyle = useLineupStore((s) => s.pitchStyle);
+  const { pitchPattern, pitchBgColor, pitchStripeColor, pitchLineColor } =
+    useLineupStore();
 
   useEffect(() => {
     function updateSize() {
@@ -125,7 +141,12 @@ export function Pitch({
             : undefined
         }
       >
-        <PitchMarkings />
+        <PitchTexture
+          pattern={pitchPattern}
+          bgColor={pitchBgColor}
+          stripeColor={pitchStripeColor}
+        />
+        <PitchMarkings lineColor={pitchLineColor} />
         {slots.map((slot) => (
           <DroppableSlot
             key={slot.slot_index}

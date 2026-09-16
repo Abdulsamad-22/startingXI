@@ -45,7 +45,7 @@ export function BenchList() {
         {subs.length === 0 ? (
           <p className="text-sm text-white/30">No substitutes yet</p>
         ) : (
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {subs.map((p) => (
               <DraggableBenchPlayer key={p.id} player={p} />
             ))}

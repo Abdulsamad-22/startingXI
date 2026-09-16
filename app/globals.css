@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+.export-freeze, .export-freeze * {
+  transition: none !important;
+  animation: none !important;
+}
+
+@theme {
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+}

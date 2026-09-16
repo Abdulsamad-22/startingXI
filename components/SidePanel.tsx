@@ -1,6 +1,7 @@
 import { TeamDetailsForm } from "./TeamDetails";
 import { FormationPanel } from "./FormationPanel";
 import { TemplatePanel } from "./TemplatesPanel";
+import { CustomizePanel } from "./CustomizePanel";
 import type { Tab } from "./ControlBar";
 
 export function SidePanel({
@@ -18,7 +19,8 @@ export function SidePanel({
   if (
     activeTab !== "Team Details" &&
     activeTab !== "Formation" &&
-    activeTab !== "Template"
+    activeTab !== "Template" && 
+    activeTab !== "Customise"
   )
     return null;
 
@@ -29,6 +31,7 @@ export function SidePanel({
         <FormationPanel allFormations={allFormations} />
       )}
       {activeTab === "Template" && <TemplatePanel />}
+      {activeTab === 'Customise' && <CustomizePanel />}
     </div>
   );
 }

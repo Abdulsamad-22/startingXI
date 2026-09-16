@@ -29,6 +29,16 @@ export type LineupState = {
   formationName: string;
   pitchStyle: "flat" | "tilted";
   templateId: "classic" | "broadcast" | "stadium";
+  pitchPattern: "solid" | "stripe" | "circle";
+  pitchBgColor: string;
+  pitchStripeColor: string;
+  pitchLineColor: string;
+  jerseyColor: string;
+  jerseySleeveColor: string;
+  jerseyCollarColor: string;
+  jerseyNumberColor: string;
+  gkJerseyColor: string;
+  gkNumberColor: string;
 
   setTemplate: (id: LineupState["templateId"]) => void;
   setPitchStyle: (style: "flat" | "tilted") => void;
@@ -54,6 +64,23 @@ export type LineupState = {
   ) => void;
   swapSlots: (fromSlot: number, toSlot: number) => void;
   placeBenchPlayerInSlot: (playerId: string, slotIndex: number) => void;
+  setCustomization: (
+    fields: Partial<
+      Pick<
+        LineupState,
+        | "pitchPattern"
+        | "pitchBgColor"
+        | "pitchStripeColor"
+        | "pitchLineColor"
+        | "jerseyColor"
+        | "jerseySleeveColor"
+        | "jerseyCollarColor"
+        | "jerseyNumberColor"
+        | "gkJerseyColor"
+        | "gkNumberColor"
+      >
+    >,
+  ) => void;
   hydrate: (data: {
     teamId: string;
     lineupId: string;
@@ -98,6 +125,16 @@ export const useLineupStore = create<LineupState>((set, get) => ({
   formationName: "",
   pitchStyle: "flat",
   templateId: "classic",
+  pitchPattern: "solid",
+  pitchBgColor: "#0E2F21",
+  pitchStripeColor: "#123A28",
+  pitchLineColor: "rgba(255,255,255,0.25)",
+  jerseyColor: "#3CEFA1",
+  jerseySleeveColor: "#FFFFFF",
+  jerseyCollarColor: "#7A1F1F",
+  jerseyNumberColor: "#0E2F21",
+  gkJerseyColor: "#D9A521",
+  gkNumberColor: "#0E2F21",
 
   setTeamDetails: (fields) => set(fields),
   setFormation: (formationId, formationName, slots) =>
@@ -105,6 +142,7 @@ export const useLineupStore = create<LineupState>((set, get) => ({
   setMarkerStyle: (markerStyle) => set({ markerStyle }),
   setPitchStyle: (pitchStyle) => set({ pitchStyle }),
   setTemplate: (templateId) => set({ templateId }),
+  setCustomization: (fields) => set(fields),
 
   addOrUpdatePlayer: (player) =>
     set((state) => {
@@ -162,16 +200,38 @@ export const useLineupStore = create<LineupState>((set, get) => ({
     })),
 
   swapSlots: (fromSlot, toSlot) =>
-    set((state) => ({
-      players: state.players.map((p) => {
-        if (p.slot_index === fromSlot) return { ...p, slot_index: toSlot };
-        if (p.slot_index === toSlot) return { ...p, slot_index: fromSlot };
-        return p;
-      }),
-    })),
-
-  placeBenchPlayerInSlot: (playerId: string, slotIndex: number) =>
     set((state) => {
+      const fromLabel = state.slots.find(
+        (s) => s.slot_index === fromSlot,
+      )?.label;
+      const toLabel = state.slots.find((s) => s.slot_index === toSlot)?.label;
+
+      return {
+        players: state.players.map((p) => {
+          if (p.slot_index === fromSlot) {
+            return {
+              ...p,
+              slot_index: toSlot,
+              position_group: toLabel ?? p.position_group,
+            };
+          }
+          if (p.slot_index === toSlot) {
+            return {
+              ...p,
+              slot_index: fromSlot,
+              position_group: fromLabel ?? p.position_group,
+            };
+          }
+          return p;
+        }),
+      };
+    }),
+
+  placeBenchPlayerInSlot: (playerId, slotIndex) =>
+    set((state) => {
+      const targetLabel = state.slots.find(
+        (s) => s.slot_index === slotIndex,
+      )?.label;
       const previousOccupant = state.players.find(
         (p) => p.is_starting && p.slot_index === slotIndex,
       );
@@ -179,10 +239,17 @@ export const useLineupStore = create<LineupState>((set, get) => ({
       return {
         players: state.players.map((p) => {
           if (p.id === playerId) {
-            return { ...p, is_starting: true, slot_index: slotIndex };
+            return {
+              ...p,
+              is_starting: true,
+              slot_index: slotIndex,
+              position_group: targetLabel ?? p.position_group,
+            };
           }
           if (previousOccupant && p.id === previousOccupant.id) {
             return { ...p, is_starting: false, slot_index: null };
+            // note: previousOccupant keeps their own position_group as-is when benched —
+            // their "real" position doesn't change just because they've been benched
           }
           return p;
         }),

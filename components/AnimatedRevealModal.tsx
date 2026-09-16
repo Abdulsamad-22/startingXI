@@ -9,6 +9,7 @@ import { PitchMarkings } from "./PitchMarkings";
 import { ShieldMarker } from "./markers/ShieldMarker";
 import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
+import { PitchTexture } from "./PitchTexture";
 
 export function AnimatedRevealModal({
   open,
@@ -30,6 +31,10 @@ export function AnimatedRevealModal({
     jerseyNumberColor,
     gkJerseyColor,
     gkNumberColor,
+    pitchPattern,
+    pitchBgColor,
+    pitchStripeColor,
+    pitchLineColor,
   } = useLineupStore();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -143,7 +148,12 @@ export function AnimatedRevealModal({
             ref={containerRef}
             className="relative w-[280px] aspect-[2/3] bg-[#0E2F21] rounded-xl overflow-hidden mx-auto"
           >
-            <PitchMarkings />
+            <PitchTexture
+              pattern={pitchPattern}
+              bgColor={pitchBgColor}
+              stripeColor={pitchStripeColor}
+            />
+            <PitchMarkings lineColor={pitchLineColor} />
             {starters.map((p) => {
               const slot = slots.find((s) => s.slot_index === p.slot_index);
               if (!slot) return null;

@@ -59,12 +59,7 @@ export function LineupBuilder({
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1 order-1">
-          <ControlBar
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-          />
+          <ControlBar activeTab={activeTab} onTabChange={setActiveTab} />
 
           <div className="flex flex-col md:flex-row gap-4">
             <SidePanel activeTab={activeTab} allFormations={allFormations} />

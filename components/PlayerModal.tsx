@@ -2,12 +2,10 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { useState } from "react";
-import { Select } from "./ui/Select";
 import { ShieldMarker } from "./markers/ShieldMarker";
 import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { useLineupStore } from "@/lib/store/lineupStore";
-import { POSITION_GROUPS } from "@/lib/types";
 import { compressImage } from "@/lib/utils/compressPlayerImage";
 import { isNumberTaken } from "@/lib/utils/validation";
 
@@ -17,7 +15,6 @@ export function PlayerModal({
   slotIndex,
   slotLabel,
   primaryColor,
-  secondaryColor,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -32,6 +29,14 @@ export function PlayerModal({
     s.players.find((p) => p.is_starting && p.slot_index === slotIndex),
   );
   const players = useLineupStore((s) => s.players);
+  const {
+    jerseyColor,
+    jerseySleeveColor,
+    jerseyCollarColor,
+    jerseyNumberColor,
+    gkJerseyColor,
+    gkNumberColor,
+  } = useLineupStore();
 
   const [isStarting, setIsStarting] = useState(true);
   const [name, setName] = useState(existingPlayer?.name ?? "");
@@ -138,10 +143,13 @@ export function PlayerModal({
             )}
             {markerStyle === "jersey" && (
               <JerseyMarker
-                primaryColor={primaryColor}
-                isGoalkeeper={slotLabel === 'GK'}
-                number={number === "" ? undefined : number}
-                photoUrl={preview}
+                isGoalkeeper={slotLabel === "GK"}
+                jerseyColor={jerseyColor}
+                sleeveColor={jerseySleeveColor}
+                collarColor={jerseyCollarColor}
+                numberColor={jerseyNumberColor}
+                gkJerseyColor={gkJerseyColor}
+                gkNumberColor={gkNumberColor}
               />
             )}
             {markerStyle === "circle" && (

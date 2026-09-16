@@ -14,10 +14,21 @@ const OPTIONS: { style: MarkerStyle; label: string }[] = [
 
 export function MarkerStyleSelect({
   primaryColor,
+  secondaryColor,
 }: {
   primaryColor: string;
+  secondaryColor: string;
 }) {
-  const { markerStyle, setMarkerStyle } = useLineupStore();
+  const {
+    markerStyle,
+    setMarkerStyle,
+    jerseyColor,
+    jerseySleeveColor,
+    jerseyCollarColor,
+    jerseyNumberColor,
+    gkJerseyColor,
+    gkNumberColor,
+  } = useLineupStore();
 
   return (
     <div className="flex gap-3">
@@ -33,19 +44,19 @@ export function MarkerStyleSelect({
           }`}
         >
           <div className="scale-75 -my-1">
-            {style === "shield" && (
-              <ShieldMarker color={primaryColor} number={9} />
-            )}
+            {style === "shield" && <ShieldMarker color={primaryColor} />}
             {style === "jersey" && (
               <JerseyMarker
-                primaryColor={primaryColor}
                 isGoalkeeper={false}
-                number={9}
+                jerseyColor={jerseyColor}
+                sleeveColor={jerseySleeveColor}
+                collarColor={jerseyCollarColor}
+                numberColor={jerseyNumberColor}
+                gkJerseyColor={gkJerseyColor}
+                gkNumberColor={gkNumberColor}
               />
             )}
-            {style === "circle" && (
-              <CircleMarker color={primaryColor} number={9} />
-            )}
+            {style === "circle" && <CircleMarker color={primaryColor} />}
           </div>
           <span className="text-[12px] text-white/60">{label}</span>
         </button>

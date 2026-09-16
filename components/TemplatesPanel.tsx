@@ -2,11 +2,6 @@
 
 import { useLineupStore } from "@/lib/store/lineupStore";
 
-// const OPTIONS = [
-//   { id: "classic" as const, label: "Classic", desc: "Clean and minimal" },
-//   { id: "broadcast" as const, label: "Broadcast", desc: "TV-style graphic" },
-//   { id: "stadium" as const, label: "Stadium", desc: "Bold and atmospheric" },
-// ];
 
 const OPTIONS = [
   { id: "classic" as const, label: "Classic" },

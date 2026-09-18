@@ -74,7 +74,7 @@ export function FormationPanel({
       <div>
         <label className="text-xs text-white/60 mb-1 block">Player Count</label>
         <div className="flex gap-1 bg-[#0A1A14] rounded-lg p-1 w-fit">
-          {[5, 7, 9, 11].map((size) => (
+          {[5, 7, 8, 9, 11].map((size) => (
             <button
               key={size}
               type="button"

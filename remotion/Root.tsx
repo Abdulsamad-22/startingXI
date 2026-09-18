@@ -23,8 +23,6 @@ export const RemotionRoot: React.FC = () => {
         teamName: "My Team",
         formationName: "4-3-3",
         primaryColor: "#3CEFA1",
-        secondaryColor: "#1D2A25",
-        markerStyle: "circle" as const,
         pitchPattern: "solid" as const,
         pitchBgColor: "#0E2F21",
         pitchStripeColor: "#123A28",

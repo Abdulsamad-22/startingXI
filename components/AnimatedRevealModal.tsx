@@ -126,8 +126,6 @@ export function AnimatedRevealModal({
           teamName,
           formationName,
           primaryColor: jerseyColor,
-          secondaryColor: jerseySleeveColor,
-          markerStyle,
           pitchPattern,
           pitchBgColor,
           pitchStripeColor,

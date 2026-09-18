@@ -109,8 +109,8 @@ export function PlayerModal({
         <Dialog.Overlay className="fixed inset-0 bg-black/60 z-40" />
         <Dialog.Content
           className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                     bg-[#343a38] rounded-xl p-6 w-full max-w-sm z-50
-                     max-h-[85vh] overflow-y-auto"
+             bg-[#1D2A25] rounded-xl p-6 w-full max-w-sm z-50
+             max-h-[85dvh] overflow-y-auto overscroll-contain"
         >
           <div className="flex bg-[#0A1A14] rounded-full p-1 mb-6">
             <button
@@ -161,7 +161,7 @@ export function PlayerModal({
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 pb-8">
             <div className="flex flex-col gap-1">
               <label className="text-xs text-white/60">Name</label>
               <input

@@ -6,169 +6,23 @@ import {
   Easing,
   Img,
 } from "remotion";
+import { PitchTexture } from "../components/PitchTexture";
 import { PitchMarkings } from "../components/PitchMarkings";
-import { PitchTexture } from "@/components/PitchTexture";
-
-type Player = {
-  id: string;
-  name: string;
-  jersey_number: number;
-  photo_url: string | null;
-  slot_x: number;
-  slot_y: number;
-};
-
-function VideoMarker({
-  style,
-  primaryColor,
-  secondaryColor,
-  number,
-  photoUrl,
-  size,
-}: {
-  style: "shield" | "jersey" | "circle";
-  primaryColor: string;
-  secondaryColor: string;
-  number: number;
-  photoUrl: string | null;
-  size: number;
-}) {
-  if (style === "jersey") {
-    return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          width: size,
-        }}
-      >
-        {photoUrl && (
-          <Img
-            src={photoUrl}
-            style={{
-              width: size * 0.4,
-              height: size * 0.4,
-              borderRadius: "50%",
-              objectFit: "cover",
-              border: `3px solid ${primaryColor}`,
-              marginBottom: -size * 0.08,
-              zIndex: 1,
-            }}
-          />
-        )}
-        <div
-          style={{
-            width: size,
-            height: size * 0.9,
-            backgroundColor: primaryColor,
-            borderTop: `${size * 0.15}px solid ${secondaryColor}`,
-            borderRadius: size * 0.1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: 800,
-            fontSize: size * 0.35,
-            color: "#0E2F21",
-          }}
-        >
-          {number}
-        </div>
-      </div>
-    );
-  }
-
-  if (style === "shield") {
-    return (
-      <div
-        style={{
-          position: "relative",
-          width: size,
-          height: size * 1.1,
-          clipPath:
-            "polygon(50% 0%, 100% 15%, 100% 55%, 50% 100%, 0% 55%, 0% 15%)",
-          backgroundColor: "#0E2F21",
-          border: `${size * 0.05}px solid ${primaryColor}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          overflow: "hidden",
-        }}
-      >
-        {photoUrl ? (
-          <Img
-            src={photoUrl}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <span
-            style={{
-              fontWeight: 800,
-              fontSize: size * 0.35,
-              color: primaryColor,
-            }}
-          >
-            {number}
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  // circle
-  return (
-    <div style={{ position: "relative", width: size, height: size }}>
-      {photoUrl ? (
-        <Img
-          src={photoUrl}
-          style={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: `3px solid ${primaryColor}`,
-          }}
-        />
-      ) : (
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            borderRadius: "50%",
-            backgroundColor: primaryColor,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontWeight: 800,
-            fontSize: size * 0.4,
-            color: "#0E2F21",
-          }}
-        >
-          {number}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export function LineupReveal({
   teamName,
   formationName,
   primaryColor,
-  secondaryColor,
-  markerStyle,
   pitchPattern,
   pitchBgColor,
-  sizePreset,
   pitchStripeColor,
   pitchLineColor,
+  sizePreset,
   players,
 }: {
   teamName: string;
   formationName: string;
   primaryColor: string;
-  secondaryColor: string;
-  markerStyle: "shield" | "jersey" | "circle";
   pitchPattern: "solid" | "stripe" | "circle";
   pitchBgColor: string;
   pitchStripeColor: string;
@@ -190,7 +44,6 @@ export function LineupReveal({
   const availableHeight = height - headerHeight - 40;
   const availableWidth = width - 64;
 
-  // fit the tallest possible 2:3 (w:h) pitch box within the available space, centered
   const PITCH_RATIO = 2 / 3;
   let pitchWidth = availableWidth;
   let pitchHeight = pitchWidth / PITCH_RATIO;
@@ -281,14 +134,43 @@ export function LineupReveal({
                 gap: 8,
               }}
             >
-              <VideoMarker
-                style={markerStyle}
-                primaryColor={primaryColor}
-                secondaryColor={secondaryColor}
-                number={p.jersey_number}
-                photoUrl={p.photo_url}
-                size={markerSize}
-              />
+              <div
+                style={{
+                  position: "relative",
+                  width: markerSize,
+                  height: markerSize,
+                }}
+              >
+                {p.photo_url ? (
+                  <Img
+                    src={p.photo_url}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: `3px solid ${primaryColor}`,
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      backgroundColor: primaryColor,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 800,
+                      fontSize: markerSize * 0.4,
+                      color: "#0E2F21",
+                    }}
+                  >
+                    {p.jersey_number}
+                  </div>
+                )}
+              </div>
               <span
                 style={{
                   fontSize: nameSize,

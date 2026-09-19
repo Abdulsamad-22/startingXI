@@ -264,7 +264,7 @@ export function AnimatedRevealModal({
             Replay
           </button>
 
-          <button
+          {/* <button
             onClick={handleRenderVideo}
             disabled={rendering}
             className="w-full mt-2 bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg py-2 text-sm disabled:opacity-50"
@@ -287,7 +287,7 @@ export function AnimatedRevealModal({
             >
               Video ready — tap to download
             </button>
-          )}
+          )} */}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

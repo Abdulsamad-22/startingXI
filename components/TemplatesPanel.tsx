@@ -2,11 +2,11 @@
 
 import { useLineupStore } from "@/lib/store/lineupStore";
 
-
 const OPTIONS = [
   { id: "classic" as const, label: "Classic" },
   { id: "broadcast" as const, label: "Broadcast" },
   { id: "stadium" as const, label: "Stadium" },
+  { id: "elite" as const, label: "Elite" },
 ];
 
 function ClassicSwatch({ color }: { color: string }) {
@@ -68,10 +68,38 @@ function StadiumSwatch({ color }: { color: string }) {
   );
 }
 
+function EliteSwatch({ color }: { color: string }) {
+  return (
+    <div className="w-16 h-20 bg-[#0E2F21] rounded-md p-1.5 flex flex-col items-center justify-center gap-0.5 relative overflow-hidden">
+      <div
+        className="absolute top-1 left-1 w-1 h-1 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <div
+        className="absolute top-1 right-1 w-1 h-1 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <svg viewBox="0 0 100 24" className="w-12">
+        <path id="swatch-arc" d="M 4 20 Q 50 -4 96 20" fill="transparent" />
+        <text fill={color} fontSize="7" fontWeight="700" letterSpacing="1">
+          <textPath href="#swatch-arc" startOffset="50%" textAnchor="middle">
+            STARTING
+          </textPath>
+        </text>
+      </svg>
+      <span className="text-lg font-black leading-none -mt-1 text-white">
+        XI
+      </span>
+      <div className="w-8 h-1 rounded-full bg-white/10 mt-1" />
+    </div>
+  );
+}
+
 const SWATCHES = {
   classic: ClassicSwatch,
   broadcast: BroadcastSwatch,
   stadium: StadiumSwatch,
+  elite: EliteSwatch,
 };
 
 export function TemplatePanel() {

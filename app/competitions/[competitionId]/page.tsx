@@ -27,7 +27,7 @@ export default async function CompetitionOverviewPage({
 
   const { data: teams } = await supabase
     .from("competition_teams")
-    .select("id, name")
+    .select("id, name, competition_squad_players(count)")
     .eq("competition_id", competitionId)
     .order("created_at");
 
@@ -82,15 +82,26 @@ export default async function CompetitionOverviewPage({
       <AddTeamForm competitionId={competitionId} />
 
       <div className="space-y-2">
-        {teams?.map((t) => (
-          <Link
-            key={t.id}
-            href={`/competitions/${competitionId}/teams/${t.id}`}
-            className="block bg-[#343A38] rounded-lg px-4 py-3 hover:bg-[#1D2A25]/70"
-          >
-            {t.name}
-          </Link>
-        ))}
+        {teams?.map((t: any) => {
+          const playerCount = t.competition_squad_players?.[0]?.count ?? 0;
+          return (
+            <div
+              key={t.id}
+              className="bg-[#1D2A25] rounded-lg px-4 py-3 flex items-center justify-between"
+            >
+              <span>{t.name}</span>
+              <Link
+                href={`/competitions/${competitionId}/teams/${t.id}`}
+                className="text-xs text-white/50 hover:text-[#3CEFA1]"
+              >
+                {playerCount > 0
+                  ? `${playerCount}/${competition.max_squad_size} registered`
+                  : "Register players (optional)"}{" "}
+                →
+              </Link>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

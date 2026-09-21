@@ -511,3 +511,21 @@ export async function saveCompetitionSquad(state: {
     `/competitions/${state.competitionId}/teams/${state.competitionTeamId}`,
   );
 }
+
+export async function getNextUnvisitedTeam(
+  competitionId: string,
+  visitedTeamIds: string[],
+) {
+  const supabase = await createClient();
+
+  const { data: teams } = await supabase
+    .from("competition_teams")
+    .select("id, created_at")
+    .eq("competition_id", competitionId)
+    .order("created_at");
+
+  if (!teams) return null;
+
+  const next = teams.find((t) => !visitedTeamIds.includes(t.id));
+  return next?.id ?? null;
+}

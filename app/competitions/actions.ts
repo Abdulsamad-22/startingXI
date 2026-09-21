@@ -3,6 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import {
+  generateRoundRobin,
+  generateKnockoutBracket,
+  shuffle,
+} from "@/lib/utils/fixtures";
 
 export async function createCompetition(formData: FormData) {
   const supabase = await createClient();
@@ -26,6 +31,29 @@ export async function createCompetition(formData: FormData) {
 
   if (error) throw error;
   redirect(`/competitions/${data.id}`);
+}
+
+export async function deleteCompetition(competitionId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("creator_id")
+    .eq("id", competitionId)
+    .single();
+
+  if (!competition || competition.creator_id !== user?.id) {
+    throw new Error("Only the creator can delete this competition");
+  }
+
+  const { error } = await supabase
+    .from("competitions")
+    .delete()
+    .eq("id", competitionId);
+  if (error) throw error;
 }
 
 export async function getNextIncompleteTeam(
@@ -224,10 +252,69 @@ export async function bulkImportSquad(
   revalidatePath(`/competitions/${competitionId}/teams/${competitionTeamId}`);
 }
 
-import {
-  generateRoundRobin,
-  generateKnockoutBracket,
-} from "@/lib/utils/fixtures";
+async function buildFixtures(
+  competitionId: string,
+  type: "league" | "cup",
+  teamIds: string[],
+) {
+  const supabase = await createClient();
+  const shuffledIds = shuffle(teamIds);
+
+  if (type === "league") {
+    const pairings = generateRoundRobin(shuffledIds);
+    const { error } = await supabase.from("fixtures").insert(
+      pairings.map((p) => ({
+        competition_id: competitionId,
+        round: p.round,
+        home_team_id: p.home,
+        away_team_id: p.away,
+      })),
+    );
+    if (error) throw error;
+  } else {
+    const { round1, byeTeams, totalRounds } =
+      generateKnockoutBracket(shuffledIds);
+
+    const laterRoundFixtures: { round: number; id: string }[] = [];
+    for (let r = 2; r <= totalRounds; r++) {
+      const fixturesInRound = Math.pow(2, totalRounds - r);
+      for (let i = 0; i < fixturesInRound; i++) {
+        const { data, error } = await supabase
+          .from("fixtures")
+          .insert({ competition_id: competitionId, round: r })
+          .select("id")
+          .single();
+        if (error) throw error;
+        laterRoundFixtures.push({ round: r, id: data.id });
+      }
+    }
+
+    const round2Fixtures = laterRoundFixtures.filter((f) => f.round === 2);
+
+    for (let i = 0; i < round1.length; i++) {
+      const nextFixtureId = round2Fixtures[Math.floor(i / 2)]?.id ?? null;
+      const slot = i % 2 === 0 ? "home" : "away";
+      await supabase.from("fixtures").insert({
+        competition_id: competitionId,
+        round: 1,
+        home_team_id: round1[i].home,
+        away_team_id: round1[i].away,
+        next_fixture_id: nextFixtureId,
+        next_fixture_slot: slot,
+      });
+    }
+
+    for (let i = 0; i < byeTeams.length; i++) {
+      const dest = round2Fixtures[Math.floor((round1.length + i) / 2)];
+      if (!dest) continue;
+      const slot = (round1.length + i) % 2 === 0 ? "home" : "away";
+      await supabase
+        .from("fixtures")
+        .update({ [`${slot}_team_id`]: byeTeams[i] })
+        .eq("id", dest.id);
+    }
+  }
+}
 
 export async function generateFixtures(competitionId: string) {
   const supabase = await createClient();
@@ -253,74 +340,46 @@ export async function generateFixtures(competitionId: string) {
   if (existing && existing > 0)
     throw new Error("Fixtures already generated for this competition");
 
-  const teamIds = teams.map((t) => t.id);
+  await buildFixtures(
+    competitionId,
+    competition.type as "league" | "cup",
+    teams.map((t) => t.id),
+  );
+  revalidatePath(`/competitions/${competitionId}/fixtures`);
+}
 
-  if (competition.type === "league") {
-    const pairings = generateRoundRobin(teamIds);
-    const { error } = await supabase.from("fixtures").insert(
-      pairings.map((p) => ({
-        competition_id: competitionId,
-        round: p.round,
-        home_team_id: p.home,
-        away_team_id: p.away,
-      })),
+export async function reshuffleFixtures(competitionId: string) {
+  const supabase = await createClient();
+
+  const { count: confirmedCount } = await supabase
+    .from("fixtures")
+    .select("id", { count: "exact", head: true })
+    .eq("competition_id", competitionId)
+    .not("confirmed_at", "is", null);
+
+  if (confirmedCount && confirmedCount > 0) {
+    throw new Error(
+      "Cannot reshuffle — results have already been confirmed for this competition",
     );
-    if (error) throw error;
-  } else {
-    const { round1, byeTeams, totalRounds } = generateKnockoutBracket(teamIds);
-
-    // create every later round's fixtures as empty placeholders first, so we
-    // have real fixture IDs to link round 1's winners into
-    const laterRoundFixtures: { round: number; id: string }[] = [];
-    for (let r = 2; r <= totalRounds; r++) {
-      const fixturesInRound = Math.pow(2, totalRounds - r);
-      for (let i = 0; i < fixturesInRound; i++) {
-        const { data, error } = await supabase
-          .from("fixtures")
-          .insert({ competition_id: competitionId, round: r })
-          .select("id")
-          .single();
-        if (error) throw error;
-        laterRoundFixtures.push({ round: r, id: data.id });
-      }
-    }
-
-    // round 1 fixtures, each linked to its round-2 destination
-    let byeIndex = 0;
-    for (let i = 0; i < round1.length; i++) {
-      const destFixture = laterRoundFixtures.find(
-        (f) =>
-          f.round === 2 &&
-          Math.floor(i / 2) ===
-            laterRoundFixtures.filter((x) => x.round === 2).indexOf(f),
-      );
-      const nextFixtureId =
-        laterRoundFixtures.filter((f) => f.round === 2)[Math.floor(i / 2)]
-          ?.id ?? null;
-      const slot = i % 2 === 0 ? "home" : "away";
-
-      await supabase.from("fixtures").insert({
-        competition_id: competitionId,
-        round: 1,
-        home_team_id: round1[i].home,
-        away_team_id: round1[i].away,
-        next_fixture_id: nextFixtureId,
-        next_fixture_slot: slot,
-      });
-    }
-
-    // bye teams skip straight into round 2's placeholder fixtures
-    const round2Fixtures = laterRoundFixtures.filter((f) => f.round === 2);
-    for (let i = 0; i < byeTeams.length; i++) {
-      const dest = round2Fixtures[Math.floor((round1.length + i) / 2)];
-      if (!dest) continue;
-      const slot = (round1.length + i) % 2 === 0 ? "home" : "away";
-      await supabase
-        .from("fixtures")
-        .update({ [`${slot}_team_id`]: byeTeams[i] })
-        .eq("id", dest.id);
-    }
   }
+
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("type")
+    .eq("id", competitionId)
+    .single();
+  const { data: teams } = await supabase
+    .from("competition_teams")
+    .select("id")
+    .eq("competition_id", competitionId);
+  if (!competition || !teams) throw new Error("Competition or teams not found");
+
+  await supabase.from("fixtures").delete().eq("competition_id", competitionId);
+  await buildFixtures(
+    competitionId,
+    competition.type as "league" | "cup",
+    teams.map((t) => t.id),
+  );
 
   revalidatePath(`/competitions/${competitionId}/fixtures`);
 }

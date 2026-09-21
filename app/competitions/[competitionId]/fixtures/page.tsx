@@ -25,6 +25,16 @@ export default async function FixturesPage({
     .eq("competition_id", competitionId)
     .order("round");
 
+  const { data: teamsWithCounts } = await supabase
+    .from("competition_teams")
+    .select("id, name, competition_squad_players(count)")
+    .eq("competition_id", competitionId);
+
+  const teamsWithNoSquad =
+    teamsWithCounts?.filter(
+      (t: any) => (t.competition_squad_players?.[0]?.count ?? 0) === 0,
+    ) ?? [];
+
   const generate = generateFixtures.bind(null, competitionId);
   const rounds = [...new Set(fixtures?.map((f) => f.round))];
 
@@ -37,7 +47,13 @@ export default async function FixturesPage({
         label="Back to Competition"
       />
       <h1 className="text-2xl font-bold mb-6">Fixtures</h1>
-
+      {teamsWithNoSquad.length > 0 && (!fixtures || fixtures.length === 0) && (
+        <p className="text-xs text-white/40 mb-2">
+          {teamsWithNoSquad.length} team
+          {teamsWithNoSquad.length > 1 ? "s have" : " has"} no players
+          registered yet — you can still generate fixtures and add squads later.
+        </p>
+      )}
       {(!fixtures || fixtures.length === 0) && (
         <form action={generate}>
           <button
@@ -46,13 +62,12 @@ export default async function FixturesPage({
           >
             Generate Fixtures
           </button>
-
-          {fixtures && fixtures.length > 0 && !hasConfirmedResults && (
-            <div className="mb-6">
-              <ReshuffleButton competitionId={competitionId} />
-            </div>
-          )}
         </form>
+      )}
+      {fixtures && fixtures.length > 0 && !hasConfirmedResults && (
+        <div className="mb-6">
+          <ReshuffleButton competitionId={competitionId} />
+        </div>
       )}
 
       {rounds.map((round) => (

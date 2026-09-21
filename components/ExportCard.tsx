@@ -8,11 +8,13 @@ import { ClassicTemplate } from "./templates/ClassicTemplate";
 import { BroadcastTemplate } from "./templates/BroadcastTemplate";
 import { StadiumTemplate } from "./templates/StadiumTemplate";
 import { AnimatedRevealModal } from "./AnimatedRevealModal";
+import { EliteTemplate } from "./templates/EliteTemplate";
 
 const TEMPLATES = {
   classic: ClassicTemplate,
   broadcast: BroadcastTemplate,
   stadium: StadiumTemplate,
+  elite: EliteTemplate,
 };
 
 export function ExportCard({ children }: { children: React.ReactNode }) {

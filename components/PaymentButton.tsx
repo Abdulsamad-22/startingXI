@@ -12,9 +12,11 @@ import { Lock } from "lucide-react";
 
 export function PaymentButton({
   feature,
+  email,
   onSuccess,
 }: {
   feature: PaidFeature;
+  email: string;
   onSuccess: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ export function PaymentButton({
     setLoading(true);
     setError(null);
     try {
-      const { accessCode, reference } = await initializePayment(feature);
+      const { accessCode, reference } = await initializePayment(feature, email);
       await loadPaystackScript();
 
       const popup = new (window as any).PaystackPop();

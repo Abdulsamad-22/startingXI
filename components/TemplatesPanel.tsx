@@ -1,12 +1,20 @@
 "use client";
 
+import { hasUnusedAccess } from "@/app/payments/action";
+import type { PaidFeature } from "@/lib/payments/pricing";
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { useEffect, useState } from "react";
+import { PaymentGate } from "./PaymentGate";
 
-const OPTIONS = [
-  { id: "classic" as const, label: "Classic" },
-  { id: "broadcast" as const, label: "Broadcast" },
-  { id: "stadium" as const, label: "Stadium" },
-  { id: "elite" as const, label: "Elite" },
+const OPTIONS: {
+  id: "classic" | "broadcast" | "stadium" | "elite";
+  label: string;
+  feature: PaidFeature | null;
+}[] = [
+  { id: "classic", label: "Classic", feature: null },
+  { id: "broadcast", label: "Broadcast", feature: "template_broadcast" },
+  { id: "stadium", label: "Stadium", feature: "template_stadium" },
+  { id: "elite", label: "Elite", feature: "template_elite" },
 ];
 
 function ClassicSwatch({ color }: { color: string }) {
@@ -102,29 +110,106 @@ const SWATCHES = {
   elite: EliteSwatch,
 };
 
+function LockIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="white"
+      strokeWidth="2"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
 export function TemplatePanel() {
-  const { templateId, setTemplate, primaryColor } = useLineupStore();
+  const {
+    templateId,
+    setTemplate,
+    primaryColor,
+    unlockedFeatures,
+    setFeatureUnlocked,
+  } = useLineupStore();
+  const [paying, setPaying] = useState<string | null>(null);
+  const [gateFeature, setGateFeature] = useState<PaidFeature | null>(null);
+  const [pendingTemplateId, setPendingTemplateId] = useState<
+    (typeof OPTIONS)[number]["id"] | null
+  >(null);
+
+  useEffect(() => {
+    OPTIONS.forEach((opt) => {
+      if (!opt.feature) return;
+      hasUnusedAccess(opt.feature).then((has) =>
+        setFeatureUnlocked(opt.feature!, has),
+      );
+    });
+  }, []);
+
+  function handleLockClick(
+    feature: PaidFeature,
+    templateOptionId: (typeof OPTIONS)[number]["id"],
+  ) {
+    setGateFeature(feature);
+    setPendingTemplateId(templateOptionId);
+  }
 
   return (
-    <div className="flex flex-wrap gap-3">
-      {OPTIONS.map((opt) => {
-        const Swatch = SWATCHES[opt.id];
-        return (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => setTemplate(opt.id)}
-            className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border transition-colors ${
-              templateId === opt.id
-                ? "border-[#3CEFA1] bg-[#3CEFA1]/10"
-                : "border-white/10 hover:border-white/20"
-            }`}
-          >
-            <Swatch color={primaryColor} />
-            <span className="text-[11px] text-white/60">{opt.label}</span>
-          </button>
-        );
-      })}
+    <div>
+      <div className="flex gap-3 flex-wrap">
+        {OPTIONS.map((opt) => {
+          const Swatch = SWATCHES[opt.id];
+          const isLocked = !!opt.feature && !unlockedFeatures[opt.feature];
+
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() =>
+                isLocked && opt.feature
+                  ? handleLockClick(opt.feature, opt.id)
+                  : setTemplate(opt.id)
+              }
+              disabled={paying === opt.feature}
+              className={`relative flex flex-col items-center gap-1.5 p-1.5 rounded-lg border transition-colors ${
+                templateId === opt.id
+                  ? "border-[#3CEFA1] bg-[#3CEFA1]/10"
+                  : "border-white/10 hover:border-white/20"
+              }`}
+            >
+              <div className="relative">
+                <Swatch color={primaryColor} />
+                {isLocked && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md">
+                    {paying === opt.feature ? (
+                      <span className="text-[10px] text-white animate-pulse">
+                        ...
+                      </span>
+                    ) : (
+                      <LockIcon />
+                    )}
+                  </div>
+                )}
+              </div>
+              <span className="text-[11px] text-white/60">{opt.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {gateFeature && (
+        <PaymentGate
+          feature={gateFeature}
+          open={!!gateFeature}
+          onOpenChange={(open) => !open && setGateFeature(null)}
+          onSuccess={() => {
+            setFeatureUnlocked(gateFeature, true);
+            if (pendingTemplateId) setTemplate(pendingTemplateId);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -3,13 +3,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { FEATURE_PRICES, type PaidFeature } from "@/lib/payments/pricing";
 
-export async function initializePayment(feature: PaidFeature) {
+export async function initializePayment(feature: PaidFeature, email: string) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || user.is_anonymous)
-    throw new Error("Save your team before making a payment");
+  if (!user) throw new Error("Not authenticated");
 
   const amount = FEATURE_PRICES[feature];
 
@@ -33,7 +32,7 @@ export async function initializePayment(feature: PaidFeature) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      email: user.email ?? `${user.id}@lineup-app.local`,
+      email,
       amount,
       reference: payment.paystack_reference,
     }),
@@ -47,6 +46,7 @@ export async function initializePayment(feature: PaidFeature) {
     reference: payment.paystack_reference,
   };
 }
+
 export async function verifyPayment(reference: string) {
   const supabase = await createClient();
 

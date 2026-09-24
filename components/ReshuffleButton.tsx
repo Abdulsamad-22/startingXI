@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { reshuffleFixtures } from "@/app/competitions/actions";
+import { Shuffle } from "lucide-react";
 
 export function ReshuffleButton({ competitionId }: { competitionId: string }) {
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,13 @@ export function ReshuffleButton({ competitionId }: { competitionId: string }) {
         disabled={loading}
         className="bg-[#1D2A25] border border-white/10 text-white text-sm rounded-lg px-4 py-2 hover:border-white/20 disabled:opacity-50"
       >
-        {loading ? "Reshuffling..." : "🔀 Reshuffle Fixtures"}
+        {loading ? (
+          "Reshuffling..."
+        ) : (
+          <span className="flex items-center gap-2">
+            <Shuffle size={16} /> Reshuffle Fixtures
+          </span>
+        )}
       </button>
       {error && <p className="text-xs text-red-400 mt-1">{error}</p>}
     </div>

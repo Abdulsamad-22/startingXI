@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AddTeamForm } from "@/components/AddTeamForm";
 import { BackButton } from "@/components/BackButton";
 import { DeleteCompetitionButton } from "@/components/DeleteCompetitionButton";
+import { ArrowRight } from "lucide-react";
 
 export default async function CompetitionOverviewPage({
   params,
@@ -92,12 +93,12 @@ export default async function CompetitionOverviewPage({
               <span>{t.name}</span>
               <Link
                 href={`/competitions/${competitionId}/teams/${t.id}`}
-                className="text-xs text-white/50 hover:text-[#3CEFA1]"
+                className="flex items-center gap-1 text-xs text-white/50 hover:text-[#3CEFA1]"
               >
                 {playerCount > 0
                   ? `${playerCount}/${competition.max_squad_size} registered`
                   : "Register players (optional)"}{" "}
-                →
+                <ArrowRight size={16} />
               </Link>
             </div>
           );

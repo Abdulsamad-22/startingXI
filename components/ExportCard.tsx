@@ -58,7 +58,7 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
     const dataUrl = await toPng(cardRef.current, {
       cacheBust: true,
       pixelRatio: 2,
-      backgroundColor: "#343a38",
+      // backgroundColor: "#343a38",
     });
     cardRef.current.classList.remove("export-freeze");
 
@@ -139,8 +139,8 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div>
-      <div ref={cardRef} className="bg-[#343A38] p-4 rounded-xl">
+    <div className="bg-[#343A38] p-4 rounded-xl">
+      <div ref={cardRef}>
         <Template>{children}</Template>
       </div>
 

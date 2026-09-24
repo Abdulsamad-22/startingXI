@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { addCompetitionTeam } from "@/app/competitions/actions";
+import {
+  addCompetitionTeam,
+  addCompetitionTeamPaid,
+} from "@/app/competitions/actions";
+import { PaymentGate } from "./PaymentGate";
 
 export function AddTeamForm({ competitionId }: { competitionId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -13,7 +19,27 @@ export function AddTeamForm({ competitionId }: { competitionId: string }) {
     try {
       await addCompetitionTeam(competitionId, formData);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add team");
+      if (err instanceof Error && err.message === "PAYMENT_REQUIRED") {
+        setPendingFormData(formData);
+        setGateOpen(true);
+      } else {
+        setError(err instanceof Error ? err.message : "Failed to add team");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handlePaymentSuccess() {
+    if (!pendingFormData) return;
+    setLoading(true);
+    try {
+      await addCompetitionTeamPaid(competitionId, pendingFormData);
+      setPendingFormData(null);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to add team after payment",
+      );
     } finally {
       setLoading(false);
     }
@@ -39,6 +65,13 @@ export function AddTeamForm({ competitionId }: { competitionId: string }) {
         </button>
       </form>
       {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+
+      <PaymentGate
+        feature="competition_extra_team"
+        open={gateOpen}
+        onOpenChange={setGateOpen}
+        onSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 }

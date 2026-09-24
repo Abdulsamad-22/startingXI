@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { confirmResult } from "@/app/competitions/actions";
+import { Check } from "lucide-react";
 
 export function ScoreEntryForm({
   competitionId,
@@ -47,7 +48,7 @@ export function ScoreEntryForm({
           type="number"
           min={0}
           required
-          className="no-spinner w-10 bg-[#0E2F21] rounded px-1 py-1 text-center text-sm"
+          className="no-spinner w-10 bg-[#0A1A14] rounded px-1 py-1 text-center text-sm outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
         <span className="text-white/30">–</span>
         <input
@@ -56,10 +57,10 @@ export function ScoreEntryForm({
           type="number"
           min={0}
           required
-          className="no-spinner w-10 bg-[#0E2F21] rounded px-1 py-1 text-center text-sm"
+          className="no-spinner w-10 bg-[#0A1A14] rounded px-1 py-1 text-center text-sm outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
         <button type="submit" className="text-xs text-[#3CEFA1] ml-1">
-          ✓
+          <Check size={16} />
         </button>
       </div>
 

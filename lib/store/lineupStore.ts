@@ -28,7 +28,7 @@ export type LineupState = {
   players: DraftPlayer[];
   formationName: string;
   pitchStyle: "flat" | "tilted";
-  templateId: "classic" | "broadcast" | "stadium";
+  templateId: "classic" | "broadcast" | "stadium" | "elite";
   pitchPattern: "solid" | "stripe" | "circle";
   pitchBgColor: string;
   pitchStripeColor: string;
@@ -39,7 +39,9 @@ export type LineupState = {
   jerseyNumberColor: string;
   gkJerseyColor: string;
   gkNumberColor: string;
+  unlockedFeatures: Record<string, boolean>;
 
+  setFeatureUnlocked: (feature: string, unlocked: boolean) => void;
   setTemplate: (id: LineupState["templateId"]) => void;
   setPitchStyle: (style: "flat" | "tilted") => void;
   setTeamDetails: (
@@ -135,6 +137,7 @@ export const useLineupStore = create<LineupState>((set, get) => ({
   jerseyNumberColor: "#0E2F21",
   gkJerseyColor: "#D9A521",
   gkNumberColor: "#0E2F21",
+  unlockedFeatures: {},
 
   setTeamDetails: (fields) => set(fields),
   setFormation: (formationId, formationName, slots) =>
@@ -143,6 +146,10 @@ export const useLineupStore = create<LineupState>((set, get) => ({
   setPitchStyle: (pitchStyle) => set({ pitchStyle }),
   setTemplate: (templateId) => set({ templateId }),
   setCustomization: (fields) => set(fields),
+  setFeatureUnlocked: (feature, unlocked) =>
+    set((state) => ({
+      unlockedFeatures: { ...state.unlockedFeatures, [feature]: unlocked },
+    })),
 
   addOrUpdatePlayer: (player) =>
     set((state) => {

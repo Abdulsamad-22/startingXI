@@ -1,12 +1,20 @@
 "use client";
 
+import { hasUnusedAccess } from "@/app/payments/action";
+import type { PaidFeature } from "@/lib/payments/pricing";
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { useEffect, useState } from "react";
+import { PaymentGate } from "./PaymentGate";
 
-
-const OPTIONS = [
-  { id: "classic" as const, label: "Classic" },
-  { id: "broadcast" as const, label: "Broadcast" },
-  { id: "stadium" as const, label: "Stadium" },
+const OPTIONS: {
+  id: "classic" | "broadcast" | "stadium" | "elite";
+  label: string;
+  feature: PaidFeature | null;
+}[] = [
+  { id: "classic", label: "Classic", feature: null },
+  { id: "broadcast", label: "Broadcast", feature: "template_broadcast" },
+  { id: "stadium", label: "Stadium", feature: "template_stadium" },
+  { id: "elite", label: "Elite", feature: "template_elite" },
 ];
 
 function ClassicSwatch({ color }: { color: string }) {
@@ -68,35 +76,140 @@ function StadiumSwatch({ color }: { color: string }) {
   );
 }
 
+function EliteSwatch({ color }: { color: string }) {
+  return (
+    <div className="w-16 h-20 bg-[#0E2F21] rounded-md p-1.5 flex flex-col items-center justify-center gap-0.5 relative overflow-hidden">
+      <div
+        className="absolute top-1 left-1 w-1 h-1 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <div
+        className="absolute top-1 right-1 w-1 h-1 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <svg viewBox="0 0 100 24" className="w-12">
+        <path id="swatch-arc" d="M 4 20 Q 50 -4 96 20" fill="transparent" />
+        <text fill={color} fontSize="7" fontWeight="700" letterSpacing="1">
+          <textPath href="#swatch-arc" startOffset="50%" textAnchor="middle">
+            STARTING
+          </textPath>
+        </text>
+      </svg>
+      <span className="text-lg font-black leading-none -mt-1 text-white">
+        XI
+      </span>
+      <div className="w-8 h-1 rounded-full bg-white/10 mt-1" />
+    </div>
+  );
+}
+
 const SWATCHES = {
   classic: ClassicSwatch,
   broadcast: BroadcastSwatch,
   stadium: StadiumSwatch,
+  elite: EliteSwatch,
 };
 
+function LockIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="white"
+      strokeWidth="2"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
 export function TemplatePanel() {
-  const { templateId, setTemplate, primaryColor } = useLineupStore();
+  const {
+    templateId,
+    setTemplate,
+    primaryColor,
+    unlockedFeatures,
+    setFeatureUnlocked,
+  } = useLineupStore();
+  const [paying, setPaying] = useState<string | null>(null);
+  const [gateFeature, setGateFeature] = useState<PaidFeature | null>(null);
+  const [pendingTemplateId, setPendingTemplateId] = useState<
+    (typeof OPTIONS)[number]["id"] | null
+  >(null);
+
+  useEffect(() => {
+    OPTIONS.forEach((opt) => {
+      if (!opt.feature) return;
+      hasUnusedAccess(opt.feature).then((has) =>
+        setFeatureUnlocked(opt.feature!, has),
+      );
+    });
+  }, []);
+
+  function handleLockClick(
+    feature: PaidFeature,
+    templateOptionId: (typeof OPTIONS)[number]["id"],
+  ) {
+    setGateFeature(feature);
+    setPendingTemplateId(templateOptionId);
+  }
 
   return (
-    <div className="flex flex-wrap gap-3">
-      {OPTIONS.map((opt) => {
-        const Swatch = SWATCHES[opt.id];
-        return (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => setTemplate(opt.id)}
-            className={`flex flex-col items-center gap-1.5 p-1.5 rounded-lg border transition-colors ${
-              templateId === opt.id
-                ? "border-[#3CEFA1] bg-[#3CEFA1]/10"
-                : "border-white/10 hover:border-white/20"
-            }`}
-          >
-            <Swatch color={primaryColor} />
-            <span className="text-[11px] text-white/60">{opt.label}</span>
-          </button>
-        );
-      })}
+    <div>
+      <div className="flex gap-3 flex-wrap">
+        {OPTIONS.map((opt) => {
+          const Swatch = SWATCHES[opt.id];
+          const isLocked = !!opt.feature && !unlockedFeatures[opt.feature];
+
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() =>
+                isLocked && opt.feature
+                  ? handleLockClick(opt.feature, opt.id)
+                  : setTemplate(opt.id)
+              }
+              disabled={paying === opt.feature}
+              className={`relative flex flex-col items-center gap-1.5 p-1.5 rounded-lg border transition-colors ${
+                templateId === opt.id
+                  ? "border-[#3CEFA1] bg-[#3CEFA1]/10"
+                  : "border-white/10 hover:border-white/20"
+              }`}
+            >
+              <div className="relative">
+                <Swatch color={primaryColor} />
+                {isLocked && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md">
+                    {paying === opt.feature ? (
+                      <span className="text-[10px] text-white animate-pulse">
+                        ...
+                      </span>
+                    ) : (
+                      <LockIcon />
+                    )}
+                  </div>
+                )}
+              </div>
+              <span className="text-[11px] text-white/60">{opt.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      {gateFeature && (
+        <PaymentGate
+          feature={gateFeature}
+          open={!!gateFeature}
+          onOpenChange={(open) => !open && setGateFeature(null)}
+          onSuccess={() => {
+            setFeatureUnlocked(gateFeature, true);
+            if (pendingTemplateId) setTemplate(pendingTemplateId);
+          }}
+        />
+      )}
     </div>
   );
 }

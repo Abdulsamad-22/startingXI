@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { initializePayment, verifyPayment } from "@/app/payments/action";
+import {
+  initializePayment,
+  verifyPayment,
+  chargeWithSavedCard,
+  hasSavedCard,
+} from "@/app/payments/action";
 import { loadPaystackScript } from "@/lib/payments/loadPaystackScript";
 import {
   FEATURE_LABELS,
@@ -24,6 +29,31 @@ export function PaymentGate({
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedCard, setSavedCard] = useState<{
+    available: boolean;
+    email?: string;
+  } | null>(null);
+  const [useNewCard, setUseNewCard] = useState(false);
+
+  useEffect(() => {
+    if (open) hasSavedCard().then(setSavedCard);
+  }, [open]);
+
+  async function handleUseSavedCard() {
+    setLoading(true);
+    setError(null);
+    try {
+      await chargeWithSavedCard(feature);
+      onSuccess();
+      onOpenChange(false);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Saved card payment failed",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleContinue(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +83,8 @@ export function PaymentGate({
     }
   }
 
+  const showSavedCardOption = savedCard?.available && !useNewCard;
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -66,31 +98,50 @@ export function PaymentGate({
             unlock
           </p>
 
-          <form onSubmit={handleContinue} className="flex flex-col gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-white/60">
-                Enter your email to receive your payment receipt.
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="bg-[#0A1A14] text-[#fff] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
-              />
+          {showSavedCardOption ? (
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={handleUseSavedCard}
+                disabled={loading}
+                className="bg-[#3CEFA1] text-[#0E2F21] font-bold rounded-lg py-3 disabled:opacity-50"
+              >
+                {loading ? "Processing..." : `Pay with saved card`}
+              </button>
+              <button
+                type="button"
+                onClick={() => setUseNewCard(true)}
+                className="text-xs text-white/40 hover:text-white"
+              >
+                Use a different card instead
+              </button>
             </div>
+          ) : (
+            <form onSubmit={handleContinue} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-white/60">
+                  Enter your email to receive your payment receipt.
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="bg-[#0A1A14] text-[#fff] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+                />
+              </div>
 
-            {error && <p className="text-xs text-red-400">{error}</p>}
+              {error && <p className="text-xs text-red-400">{error}</p>}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-[#3CEFA1] text-[#0E2F21] font-bold rounded-lg py-3 mt-1 disabled:opacity-50"
-            >
-              {loading ? "Processing..." : "Continue to Payment"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="bg-[#3CEFA1] text-[#0E2F21] font-bold rounded-lg py-3 mt-1 disabled:opacity-50"
+              >
+                {loading ? "Processing..." : "Continue to Payment"}
+              </button>
+            </form>
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

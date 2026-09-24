@@ -74,6 +74,31 @@ export async function verifyPayment(reference: string) {
   return { success: false };
 }
 
+export async function hasSavedCard(): Promise<{
+  available: boolean;
+  email?: string;
+}> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { available: false };
+
+  const { data } = await supabase
+    .from("payments")
+    .select("authorization_code, email")
+    .eq("user_id", user.id)
+    .eq("status", "success")
+    .not("authorization_code", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data
+    ? { available: true, email: data.email ?? undefined }
+    : { available: false };
+}
+
 export async function chargeWithSavedCard(feature: PaidFeature) {
   const supabase = await createClient();
   const {
@@ -83,7 +108,7 @@ export async function chargeWithSavedCard(feature: PaidFeature) {
 
   const { data: lastSuccess } = await supabase
     .from("payments")
-    .select("authorization_code")
+    .select("authorization_code, email")
     .eq("user_id", user.id)
     .eq("status", "success")
     .not("authorization_code", "is", null)
@@ -101,6 +126,7 @@ export async function chargeWithSavedCard(feature: PaidFeature) {
     user_id: user.id,
     feature,
     amount,
+    email: lastSuccess.email,
     paystack_reference: reference,
     status: "pending",
   });
@@ -115,7 +141,7 @@ export async function chargeWithSavedCard(feature: PaidFeature) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        email: user.email ?? `${user.id}@lineup-app.local`,
+        email: lastSuccess.email,
         amount,
         authorization_code: lastSuccess.authorization_code,
         reference,
@@ -132,10 +158,12 @@ export async function chargeWithSavedCard(feature: PaidFeature) {
     throw new Error("Saved card payment failed — try a new card instead");
   }
 
-  // webhook will also confirm this, but we update here too for immediate UI feedback
   await supabase
     .from("payments")
-    .update({ status: "success" })
+    .update({
+      status: "success",
+      authorization_code: lastSuccess.authorization_code,
+    })
     .eq("paystack_reference", reference);
   return { success: true };
 }

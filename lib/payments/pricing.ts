@@ -3,6 +3,7 @@ export const FEATURE_PRICES = {
   template_stadium: 150000,
   template_elite: 150000,
   video_export: 150000,
+  competition_extra_team: 300000,
 } as const;
 
 export type PaidFeature = keyof typeof FEATURE_PRICES;
@@ -12,4 +13,5 @@ export const FEATURE_LABELS: Record<PaidFeature, string> = {
   template_stadium: "Stadium Template",
   template_elite: "Elite Template",
   video_export: "Animated Video Export",
+  competition_extra_team: "Additional Team Slot",
 };

@@ -8,6 +8,7 @@ import {
   generateKnockoutBracket,
   shuffle,
 } from "@/lib/utils/fixtures";
+import { consumeAccess } from "../payments/action";
 
 export async function createCompetition(formData: FormData) {
   const supabase = await createClient();
@@ -31,6 +32,61 @@ export async function createCompetition(formData: FormData) {
 
   if (error) throw error;
   redirect(`/competitions/${data.id}`);
+}
+
+const FREE_TEAM_LIMIT = 8;
+
+export async function checkTeamSlotStatus(
+  competitionId: string,
+): Promise<"free" | "needs_payment" | "blocked"> {
+  const supabase = await createClient();
+
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("max_teams")
+    .eq("id", competitionId)
+    .single();
+  const { count } = await supabase
+    .from("competition_teams")
+    .select("id", { count: "exact", head: true })
+    .eq("competition_id", competitionId);
+
+  if (!competition || count === null) return "blocked";
+  if (count >= competition.max_teams) return "blocked";
+  if (count >= FREE_TEAM_LIMIT) return "needs_payment";
+  return "free";
+}
+
+export async function addCompetitionTeam(
+  competitionId: string,
+  formData: FormData,
+) {
+  const status = await checkTeamSlotStatus(competitionId);
+  if (status === "blocked")
+    throw new Error("This competition has reached its maximum team limit");
+  if (status === "needs_payment") throw new Error("PAYMENT_REQUIRED"); // signal for the client to open PaymentGate
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("competition_teams").insert({
+    competition_id: competitionId,
+    name: formData.get("name") as string,
+  });
+  if (error) throw error;
+  revalidatePath(`/competitions/${competitionId}`);
+}
+
+export async function addCompetitionTeamPaid(
+  competitionId: string,
+  formData: FormData,
+) {
+  await consumeAccess("competition_extra_team"); // throws if no unused access exists — a real safety check, not just UI trust
+  const supabase = await createClient();
+  const { error } = await supabase.from("competition_teams").insert({
+    competition_id: competitionId,
+    name: formData.get("name") as string,
+  });
+  if (error) throw error;
+  revalidatePath(`/competitions/${competitionId}`);
 }
 
 export async function deleteCompetition(competitionId: string) {
@@ -180,38 +236,6 @@ export async function removeOrganizer(
   revalidatePath(`/competitions/${competitionId}`);
 }
 
-export async function addCompetitionTeam(
-  competitionId: string,
-  formData: FormData,
-) {
-  const supabase = await createClient();
-
-  const { count } = await supabase
-    .from("competition_teams")
-    .select("id", { count: "exact", head: true })
-    .eq("competition_id", competitionId);
-
-  const { data: competition } = await supabase
-    .from("competitions")
-    .select("max_teams")
-    .eq("id", competitionId)
-    .single();
-
-  if (competition && count !== null && count >= competition.max_teams) {
-    throw new Error(
-      `Maximum of ${competition.max_teams} teams reached — upgrade to add more`,
-    );
-  }
-
-  const { error } = await supabase.from("competition_teams").insert({
-    competition_id: competitionId,
-    name: formData.get("name") as string,
-  });
-
-  if (error) throw error;
-  revalidatePath(`/competitions/${competitionId}`);
-}
-
 export async function bulkImportSquad(
   competitionTeamId: string,
   competitionId: string,
@@ -250,6 +274,57 @@ export async function bulkImportSquad(
 
   if (error) throw error;
   revalidatePath(`/competitions/${competitionId}/teams/${competitionTeamId}`);
+}
+
+export async function saveCompetitionSquad(state: {
+  competitionId: string;
+  competitionTeamId: string;
+  players: {
+    id: string;
+    name: string;
+    jersey_number: number;
+    position_group: string;
+    photo_file: File | null;
+    photo_url: string | null;
+  }[];
+}) {
+  const supabase = await createClient();
+
+  for (const player of state.players) {
+    let photo_url = player.photo_url ?? undefined;
+    if (player.photo_file) {
+      const path = `${state.competitionTeamId}/${player.id}`;
+      const { data: uploaded, error: uploadError } = await supabase.storage
+        .from("competition-players")
+        .upload(path, player.photo_file, { upsert: true });
+      if (uploadError) throw uploadError;
+      photo_url = supabase.storage
+        .from("competition-players")
+        .getPublicUrl(uploaded.path).data.publicUrl;
+    }
+
+    const { error } = await supabase.from("competition_squad_players").upsert({
+      id: player.id,
+      competition_team_id: state.competitionTeamId,
+      name: player.name,
+      jersey_number: player.jersey_number,
+      position_group: player.position_group,
+      ...(photo_url ? { photo_url } : {}),
+    });
+    if (error) throw error;
+  }
+
+  // handle deletions: remove any DB row whose id is no longer in the current player list
+  const currentIds = state.players.map((p) => p.id);
+  await supabase
+    .from("competition_squad_players")
+    .delete()
+    .eq("competition_team_id", state.competitionTeamId)
+    .not("id", "in", `(${currentIds.length ? currentIds.join(",") : "null"})`);
+
+  revalidatePath(
+    `/competitions/${state.competitionId}/teams/${state.competitionTeamId}`,
+  );
 }
 
 async function buildFixtures(
@@ -459,57 +534,6 @@ export async function confirmResult(
   }
 
   revalidatePath(`/competitions/${competitionId}/fixtures`);
-}
-
-export async function saveCompetitionSquad(state: {
-  competitionId: string;
-  competitionTeamId: string;
-  players: {
-    id: string;
-    name: string;
-    jersey_number: number;
-    position_group: string;
-    photo_file: File | null;
-    photo_url: string | null;
-  }[];
-}) {
-  const supabase = await createClient();
-
-  for (const player of state.players) {
-    let photo_url = player.photo_url ?? undefined;
-    if (player.photo_file) {
-      const path = `${state.competitionTeamId}/${player.id}`;
-      const { data: uploaded, error: uploadError } = await supabase.storage
-        .from("competition-players")
-        .upload(path, player.photo_file, { upsert: true });
-      if (uploadError) throw uploadError;
-      photo_url = supabase.storage
-        .from("competition-players")
-        .getPublicUrl(uploaded.path).data.publicUrl;
-    }
-
-    const { error } = await supabase.from("competition_squad_players").upsert({
-      id: player.id,
-      competition_team_id: state.competitionTeamId,
-      name: player.name,
-      jersey_number: player.jersey_number,
-      position_group: player.position_group,
-      ...(photo_url ? { photo_url } : {}),
-    });
-    if (error) throw error;
-  }
-
-  // handle deletions: remove any DB row whose id is no longer in the current player list
-  const currentIds = state.players.map((p) => p.id);
-  await supabase
-    .from("competition_squad_players")
-    .delete()
-    .eq("competition_team_id", state.competitionTeamId)
-    .not("id", "in", `(${currentIds.length ? currentIds.join(",") : "null"})`);
-
-  revalidatePath(
-    `/competitions/${state.competitionId}/teams/${state.competitionTeamId}`,
-  );
 }
 
 export async function getNextUnvisitedTeam(

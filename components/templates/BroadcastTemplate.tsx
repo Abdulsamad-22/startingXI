@@ -23,7 +23,7 @@ export function BroadcastTemplate({ children }: { children: React.ReactNode }) {
       }}
     >
       <div
-        className="flex flex-wrap items-center gap-3 px-4 py-3"
+        className="flex flex-wrap items-start gap-3 px-4 py-3"
         style={{ backgroundColor: primaryColor }}
       >
         {crestSrc && (

@@ -15,7 +15,7 @@ export function ClassicTemplate({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="bg-[#0E2F21] p-4 rounded-xl">
-      <div className="mb-3 flex items-center gap-3">
+      <div className="mb-3 flex items-start gap-3">
         {crestSrc && (
           <img
             src={crestSrc}

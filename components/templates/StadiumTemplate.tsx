@@ -28,7 +28,7 @@ export function StadiumTemplate({ children }: { children: React.ReactNode }) {
         {formationName}
       </span>
 
-      <div className="relative mb-3 flex items-center gap-3">
+      <div className="relative mb-3 flex items-start gap-3">
         {crestSrc && (
           <img
             src={crestSrc}

@@ -3,6 +3,7 @@ import { getLineupAssignments } from "@/lib/queries/lineup";
 import { HydrateStore } from "@/components/HydrateStore";
 import { LineupBuilder } from "@/components/LineupBuilder";
 import { redirect } from "next/navigation";
+import { BackButton } from "@/components/BackButton";
 
 export default async function SavedTeamPage({
   params,
@@ -56,6 +57,7 @@ export default async function SavedTeamPage({
   return (
     <div className="min-h-screen bg-[#555958] text-white p-6">
       <HydrateStore data={hydrationData} />
+      <BackButton href="/team" label="Team" />
       <LineupBuilder allFormations={allFormations ?? []} />
     </div>
   );

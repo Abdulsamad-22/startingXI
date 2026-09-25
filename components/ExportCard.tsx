@@ -33,7 +33,7 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
 
       if (!cardRef.current) return;
       const dataUrl = await toPng(cardRef.current, {
-        cacheBust: true,
+        // cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#343A38",
       });

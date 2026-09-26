@@ -19,6 +19,13 @@ export async function GET(req: NextRequest) {
     region: "us-east-1",
   });
 
+  if (!progress.done) {
+    return NextResponse.json({
+      done: false,
+      overallProgress: progress.overallProgress ?? 0,
+    });
+  }
+
   if (progress.fatalErrorEncountered) {
     return NextResponse.json(
       { error: progress.errors[0]?.message ?? "Render failed" },

@@ -58,15 +58,16 @@ export function AnimatedRevealModal({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [markerSize, setMarkerSize] = useState(38);
+  const [renderProgress, setRenderProgress] = useState(0);
+  const [activeSize, setActiveSize] = useState<
+    "story" | "square" | "landscape"
+  >("story");
+
   const SIZE_OPTIONS = [
     { id: "story" as const, label: "Story", ratio: "9:16" },
     { id: "square" as const, label: "Square", ratio: "1:1" },
     { id: "landscape" as const, label: "Landscape", ratio: "16:9" },
   ];
-
-  const [activeSize, setActiveSize] = useState<
-    "story" | "square" | "landscape"
-  >("story");
 
   const starters = players
     .filter((p) => p.is_starting && p.slot_index !== null)
@@ -115,7 +116,7 @@ export function AnimatedRevealModal({
     URL.revokeObjectURL(blobUrl);
   }
 
-  async function handleRenderVideo() {
+  async function runRenderFlow() {
     setRendering(true);
     setRenderError(null);
     try {
@@ -162,6 +163,8 @@ export function AnimatedRevealModal({
         if (status.done) {
           done = true;
           setVideoUrl(status.url);
+        } else {
+          setRenderProgress(status.overallProgress ?? 0);
         }
       }
     } catch (err) {
@@ -173,53 +176,10 @@ export function AnimatedRevealModal({
     }
   }
 
-  // async function handleRenderVideo() {
-  //   setRendering(true);
-  //   setRenderError(null);
-  //   try {
-  //     const res = await fetch("/api/render-reveal", {
-  //       method: "POST",
-  //       body: JSON.stringify({
-  //         teamId: useLineupStore.getState().teamId,
-  //         teamName,
-  //         formationName,
-  //         primaryColor: jerseyColor,
-  //         pitchPattern,
-  //         pitchBgColor,
-  //         pitchStripeColor,
-  //         pitchLineColor,
-  //         sizePreset: activeSize,
-  //         players: starters.map((p) => {
-  //           const slot = slots.find((s) => s.slot_index === p.slot_index);
-  //           return {
-  //             id: p.id,
-  //             name: p.name,
-  //             jersey_number: p.jersey_number,
-  //             photo_url: p.photo_url,
-  //             slot_x: slot?.x ?? 50,
-  //             slot_y: slot?.y ?? 50,
-  //           };
-  //         }),
-  //       }),
-  //     });
-
-  //     if (!res.ok) {
-  //       const err = await res.json().catch(() => ({}));
-  //       throw new Error(
-  //         err.error || `Request failed with status ${res.status}`,
-  //       );
-  //     }
-
-  //     const data = await res.json();
-  //     setVideoUrl(data.url);
-  //   } catch (err) {
-  //     setRenderError(
-  //       err instanceof Error ? err.message : "Something went wrong",
-  //     );
-  //   } finally {
-  //     setRendering(false);
-  //   }
-  // }
+  function handleRenderVideo() {
+    setRenderProgress(0);
+    runRenderFlow();
+  }
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -325,11 +285,19 @@ export function AnimatedRevealModal({
           <button
             onClick={handleRenderVideo}
             disabled={rendering}
-            className="w-full mt-2 bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg py-2 text-sm disabled:opacity-50"
+            className="w-full mt-2 bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg py-2 text-sm disabled:opacity-50 relative overflow-hidden"
           >
-            {rendering
-              ? "Rendering video..."
-              : `Download ${SIZE_OPTIONS.find((o) => o.id === activeSize)?.label} Video`}
+            {rendering && (
+              <div
+                className="absolute inset-0 bg-[#0E2F21]/20 transition-all duration-300"
+                style={{ width: `${renderProgress * 100}%` }}
+              />
+            )}
+            <span className="relative">
+              {rendering
+                ? `Rendering... ${Math.round(renderProgress * 100)}%`
+                : `Download ${SIZE_OPTIONS.find((o) => o.id === activeSize)?.label} Video`}
+            </span>
           </button>
 
           {renderError && (

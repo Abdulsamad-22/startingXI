@@ -119,7 +119,7 @@ export function AnimatedRevealModal({
     setRendering(true);
     setRenderError(null);
     try {
-      const res = await fetch("/api/render-reveal", {
+      const startRes = await fetch("/api/render-reveal", {
         method: "POST",
         body: JSON.stringify({
           teamId: useLineupStore.getState().teamId,
@@ -144,16 +144,26 @@ export function AnimatedRevealModal({
           }),
         }),
       });
+      if (!startRes.ok) throw new Error("Failed to start render");
+      const { renderId, bucketName, teamId, sizePreset } =
+        await startRes.json();
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(
-          err.error || `Request failed with status ${res.status}`,
+      let done = false;
+      while (!done) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const statusRes = await fetch(
+          `/api/render-reveal/status?renderId=${renderId}&bucketName=${bucketName}&teamId=${teamId}&sizePreset=${sizePreset}`,
         );
+        if (!statusRes.ok) {
+          const err = await statusRes.json().catch(() => ({}));
+          throw new Error(err.error || "Render failed");
+        }
+        const status = await statusRes.json();
+        if (status.done) {
+          done = true;
+          setVideoUrl(status.url);
+        }
       }
-
-      const data = await res.json();
-      setVideoUrl(data.url);
     } catch (err) {
       setRenderError(
         err instanceof Error ? err.message : "Something went wrong",
@@ -162,6 +172,54 @@ export function AnimatedRevealModal({
       setRendering(false);
     }
   }
+
+  // async function handleRenderVideo() {
+  //   setRendering(true);
+  //   setRenderError(null);
+  //   try {
+  //     const res = await fetch("/api/render-reveal", {
+  //       method: "POST",
+  //       body: JSON.stringify({
+  //         teamId: useLineupStore.getState().teamId,
+  //         teamName,
+  //         formationName,
+  //         primaryColor: jerseyColor,
+  //         pitchPattern,
+  //         pitchBgColor,
+  //         pitchStripeColor,
+  //         pitchLineColor,
+  //         sizePreset: activeSize,
+  //         players: starters.map((p) => {
+  //           const slot = slots.find((s) => s.slot_index === p.slot_index);
+  //           return {
+  //             id: p.id,
+  //             name: p.name,
+  //             jersey_number: p.jersey_number,
+  //             photo_url: p.photo_url,
+  //             slot_x: slot?.x ?? 50,
+  //             slot_y: slot?.y ?? 50,
+  //           };
+  //         }),
+  //       }),
+  //     });
+
+  //     if (!res.ok) {
+  //       const err = await res.json().catch(() => ({}));
+  //       throw new Error(
+  //         err.error || `Request failed with status ${res.status}`,
+  //       );
+  //     }
+
+  //     const data = await res.json();
+  //     setVideoUrl(data.url);
+  //   } catch (err) {
+  //     setRenderError(
+  //       err instanceof Error ? err.message : "Something went wrong",
+  //     );
+  //   } finally {
+  //     setRendering(false);
+  //   }
+  // }
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>

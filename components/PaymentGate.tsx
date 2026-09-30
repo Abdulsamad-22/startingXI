@@ -13,11 +13,12 @@ export function PaymentGate({
   feature,
   open,
   onOpenChange,
+  onSuccess,
 }: {
   feature: PaidFeature;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);

@@ -1,5 +1,5 @@
 export const FEATURE_PRICES = {
-  template_broadcast: 1500,
+  template_broadcast: 1000,
   template_stadium: 1500,
   template_elite: 1500,
   video_export: 3000,

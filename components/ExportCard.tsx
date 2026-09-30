@@ -12,13 +12,7 @@ import { PaymentGate } from "./PaymentGate";
 import { EliteTemplate } from "./templates/EliteTemplate";
 import { PaidFeature } from "@/lib/payments/pricing";
 import { waitForImagesToLoad } from "@/lib/utils/waitForImages";
-import {
-  consumeAccess,
-  hasUnusedAccess,
-  initializePayment,
-  verifyPayment,
-} from "@/app/payments/action";
-import { loadPaystackScript } from "@/lib/payments/loadPaystackScript";
+import { consumeAccess, hasUnusedAccess } from "@/app/payments/action";
 
 const TEMPLATES = {
   classic: ClassicTemplate,
@@ -66,31 +60,6 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
     link.download = `${(state.teamName || "lineup").replace(/\s+/g, "-").toLowerCase()}-lineup.png`;
     link.href = dataUrl;
     link.click();
-  }
-
-  async function handlePayThenExport(paidFeature: PaidFeature, email: string) {
-    const { accessCode, reference } = await initializePayment(
-      paidFeature,
-      email,
-    );
-    await loadPaystackScript();
-
-    return new Promise<void>((resolve, reject) => {
-      const popup = new (window as any).PaystackPop();
-      popup.resumeTransaction(accessCode, {
-        onSuccess: async () => {
-          const result = await verifyPayment(reference);
-          if (!result.success) {
-            reject(new Error("Payment could not be confirmed"));
-            return;
-          }
-          await runExport();
-          await consumeAccess(paidFeature);
-          resolve();
-        },
-        onCancel: () => reject(new Error("Payment cancelled")),
-      });
-    });
   }
 
   async function handlePublish() {

@@ -3,12 +3,14 @@
 import { ControlBar, type Tab } from "./ControlBar";
 import { SidePanel } from "./SidePanel";
 import { ExportCard } from "./ExportCard";
-import { PitchHeader } from "./PitchHeader";
 import { Pitch } from "./Pitch";
 import { BenchList } from "./BenchList";
 import { SquadBuilder } from "./SquadBuilder";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { FEATURE_TO_TEMPLATE_ID } from "@/lib/payments/pricing";
+import { verifyPayment } from "@/app/payments/action";
 import {
   useSensors,
   useSensor,
@@ -32,6 +34,10 @@ export function LineupBuilder({
     (s) => s.placeBenchPlayerInSlot,
   );
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
@@ -54,6 +60,46 @@ export function LineupBuilder({
       if (fromSlot !== toSlot) swapSlots(fromSlot, toSlot);
     }
   }
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const reference = searchParams.get("reference");
+    const feature = searchParams.get("feature");
+
+    if (paymentStatus === "cancelled") {
+      router.replace(pathname);
+      return;
+    }
+
+    if (paymentStatus !== "success" || !reference) return;
+
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    const check = setInterval(async () => {
+      attempts++;
+      const result = await verifyPayment(reference); // reads the real DB row — only true if the webhook already set it
+
+      if (result.success) {
+        clearInterval(check);
+        if (feature) {
+          const templateId =
+            FEATURE_TO_TEMPLATE_ID[
+              feature as keyof typeof FEATURE_TO_TEMPLATE_ID
+            ];
+          if (templateId)
+            useLineupStore.getState().setTemplate(templateId as any);
+          useLineupStore.getState().setFeatureUnlocked(feature, true);
+        }
+        router.replace(pathname);
+      } else if (attempts >= maxAttempts) {
+        clearInterval(check);
+        router.replace(pathname);
+      }
+    }, 1000);
+
+    return () => clearInterval(check);
+  }, []);
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>

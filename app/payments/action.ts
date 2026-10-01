@@ -48,7 +48,7 @@ export async function initializePayment({
           },
         },
       ],
-      payment_method_types: ["USD_CARD", "NGN_BANK_TRANSFER"],
+      payment_method_types: ["NGN_CARD", "NGN_BANK_TRANSFER"],
       customer: { email, name: name ?? email },
       success_url: successUrl,
       cancel_url: cancelUrl,

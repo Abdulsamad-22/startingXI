@@ -10,7 +10,7 @@ const anton = Anton({
 });
 const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 
-const siteUrl = "https://starting-xi-phi.vercel.app/";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
       "Pick a formation, add your players, arrange your team on the pitch, and share your football lineup.",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "StartinXI football lineup builder",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "StartinXI | Build Your Football Starting XI",
     description:
       "Create, arrange, save, and share football lineups in seconds.",
-    images: ["/og-image.png"],
+    images: ["/og-image.jpg"],
   },
   robots: {
     index: true,

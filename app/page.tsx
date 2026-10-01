@@ -3,6 +3,7 @@ import { LineupBuilder } from "@/components/LineupBuilder";
 import { InitNewDraft } from "@/components/InitNewDraft";
 import { SavedTeamsButton } from "@/components/SavedTeamsButton";
 import Link from "next/link";
+import { FeedbackSupport } from "@/components/FeedbackSupport";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -40,6 +41,11 @@ export default async function HomePage() {
       </div>
       <InitNewDraft defaultFormation={defaultFormation} />
       <LineupBuilder allFormations={allFormations ?? []} />
+
+      <FeedbackSupport
+        xUrl="https://x.com/_Hoossayn"
+        instagramUrl="https://www.instagram.com/hoosayn_10?igsh=MWQzNDRlaHVnaTJqOA=="
+      />
     </div>
   );
 }

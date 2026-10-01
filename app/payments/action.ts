@@ -31,7 +31,7 @@ export async function initializePayment({
   const productId = FEATURE_PRODUCT_IDS[feature];
   if (!productId) throw new Error(`No product configured yet for "${feature}"`);
 
-  const res = await fetch("https://sandbox-api.bachs.io/v1/checkout-sessions", {
+  const res = await fetch("https://api.bachs.io/v1/checkout-sessions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.BACHS_SECRET_KEY}`,

@@ -122,12 +122,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { error, count } = await supabase
+    const { data: payment } = await supabase
       .from("payments")
-      .update({ status: "success" }, { count: "exact" })
-      .eq("provider_reference", checkoutId);
+      .select("id, amount, status")
+      .eq("provider_reference", checkoutId)
+      .maybeSingle();
+
+    if (!payment) {
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
+    }
+
+    if (payment.status === "success") {
+      return NextResponse.json({ received: true }); // duplicate event
+    }
+
+    if (
+      event.data.status !== "SUCCEEDED" ||
+      event.data.currency !== "NGN" ||
+      Number(event.data.amount) < Number(payment.amount)
+    ) {
+      return NextResponse.json({ received: true });
+    }
+
+    const { error } = await supabase
+      .from("payments")
+      .update({ status: "success" })
+      .eq("id", payment.id)
+      .eq("status", "pending");
 
     if (error) {
+      console.error("BACHS WEBHOOK: Supabase update failed", error);
       return NextResponse.json(
         { error: "Failed to update payment" },
         { status: 500 },

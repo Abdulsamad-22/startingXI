@@ -46,14 +46,24 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
     if (!cardRef.current) return;
     await waitForImagesToLoad(cardRef.current);
     if (document.fonts?.ready) await document.fonts.ready;
+
     cardRef.current.classList.add("export-freeze");
     await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve)); // extra settle frame
+
+    const rect = cardRef.current.getBoundingClientRect();
 
     const dataUrl = await toPng(cardRef.current, {
       cacheBust: true,
       pixelRatio: 2,
-      // backgroundColor: "#343a38",
+      width: rect.width,
+      height: rect.height,
+      style: {
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      },
     });
+
     cardRef.current.classList.remove("export-freeze");
 
     const link = document.createElement("a");

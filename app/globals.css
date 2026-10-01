@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-.export-freeze, .export-freeze * {
+.export-freeze,
+.export-freeze * {
   transition: none !important;
   animation: none !important;
 }

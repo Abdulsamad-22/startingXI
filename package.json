@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@bachs/cli": "^0.2.5",
+    "@bachs/js": "^0.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/utilities": "^3.2.2",
     "@radix-ui/react-dialog": "^1.1.23",

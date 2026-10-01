@@ -12,13 +12,7 @@ import { PaymentGate } from "./PaymentGate";
 import { EliteTemplate } from "./templates/EliteTemplate";
 import { PaidFeature } from "@/lib/payments/pricing";
 import { waitForImagesToLoad } from "@/lib/utils/waitForImages";
-import {
-  consumeAccess,
-  hasUnusedAccess,
-  initializePayment,
-  verifyPayment,
-} from "@/app/payments/action";
-import { loadPaystackScript } from "@/lib/payments/loadPaystackScript";
+import { consumeAccess, hasUnusedAccess } from "@/app/payments/action";
 
 const TEMPLATES = {
   classic: ClassicTemplate,
@@ -52,45 +46,30 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
     if (!cardRef.current) return;
     await waitForImagesToLoad(cardRef.current);
     if (document.fonts?.ready) await document.fonts.ready;
+
     cardRef.current.classList.add("export-freeze");
     await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve)); // extra settle frame
+
+    const rect = cardRef.current.getBoundingClientRect();
 
     const dataUrl = await toPng(cardRef.current, {
       cacheBust: true,
       pixelRatio: 2,
-      // backgroundColor: "#343a38",
+      width: rect.width,
+      height: rect.height,
+      style: {
+        width: `${rect.width}px`,
+        height: `${rect.height}px`,
+      },
     });
+
     cardRef.current.classList.remove("export-freeze");
 
     const link = document.createElement("a");
     link.download = `${(state.teamName || "lineup").replace(/\s+/g, "-").toLowerCase()}-lineup.png`;
     link.href = dataUrl;
     link.click();
-  }
-
-  async function handlePayThenExport(paidFeature: PaidFeature, email: string) {
-    const { accessCode, reference } = await initializePayment(
-      paidFeature,
-      email,
-    );
-    await loadPaystackScript();
-
-    return new Promise<void>((resolve, reject) => {
-      const popup = new (window as any).PaystackPop();
-      popup.resumeTransaction(accessCode, {
-        onSuccess: async () => {
-          const result = await verifyPayment(reference);
-          if (!result.success) {
-            reject(new Error("Payment could not be confirmed"));
-            return;
-          }
-          await runExport();
-          await consumeAccess(paidFeature);
-          resolve();
-        },
-        onCancel: () => reject(new Error("Payment cancelled")),
-      });
-    });
   }
 
   async function handlePublish() {

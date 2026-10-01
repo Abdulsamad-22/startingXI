@@ -8,14 +8,6 @@ export async function POST(req: NextRequest) {
   // X-Bachs-Signature-V2: t=TIMESTAMP,v1=SIGNATURE
   const signatureHeader = req.headers.get("x-bachs-signature-v2");
 
-  console.log("BACHS WEBHOOK RECEIVED:", {
-    hasSignature: !!signatureHeader,
-    signatureHeader: signatureHeader
-      ? `${signatureHeader.slice(0, 20)}...`
-      : null,
-    bodyPreview: body.slice(0, 300),
-  });
-
   if (!signatureHeader) {
     return NextResponse.json(
       { error: "Missing Bachs signature header" },
@@ -74,8 +66,6 @@ export async function POST(req: NextRequest) {
   const secret = process.env.BACHS_WEBHOOK_SECRET;
 
   if (!secret) {
-    console.error("BACHS WEBHOOK: BACHS_WEBHOOK_SECRET is not configured");
-
     return NextResponse.json(
       { error: "Webhook secret is not configured" },
       { status: 500 },
@@ -105,8 +95,6 @@ export async function POST(req: NextRequest) {
   });
 
   if (!isValid) {
-    console.error("BACHS WEBHOOK: signature mismatch");
-
     return NextResponse.json(
       { error: "Invalid Bachs webhook signature" },
       { status: 401 },
@@ -121,11 +109,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  console.log("BACHS WEBHOOK EVENT:", {
-    type: event.type,
-    data: event.data,
-  });
-
   if (event.type === "collection.succeeded") {
     const supabase = createAdminClient();
 
@@ -133,11 +116,6 @@ export async function POST(req: NextRequest) {
       event.data?.checkout_id ?? event.data?.reference ?? event.data?.id;
 
     if (!checkoutId) {
-      console.error(
-        "BACHS WEBHOOK: Could not find payment reference",
-        event.data,
-      );
-
       return NextResponse.json(
         { error: "Missing payment reference" },
         { status: 400 },
@@ -149,15 +127,7 @@ export async function POST(req: NextRequest) {
       .update({ status: "success" }, { count: "exact" })
       .eq("provider_reference", checkoutId);
 
-    console.log("BACHS WEBHOOK: payment update result", {
-      checkoutId,
-      error,
-      count,
-    });
-
     if (error) {
-      console.error("BACHS WEBHOOK: Supabase update failed", error);
-
       return NextResponse.json(
         { error: "Failed to update payment" },
         { status: 500 },

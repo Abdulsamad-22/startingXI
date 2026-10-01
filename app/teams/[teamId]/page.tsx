@@ -57,7 +57,7 @@ export default async function SavedTeamPage({
   return (
     <div className="min-h-screen bg-[#555958] text-white p-6">
       <HydrateStore data={hydrationData} />
-      <BackButton href="/team" label="Team" />
+      <BackButton href="/teams" label="Team" />
       <LineupBuilder allFormations={allFormations ?? []} />
     </div>
   );

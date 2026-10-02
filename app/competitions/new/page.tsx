@@ -1,3 +1,4 @@
+import { SubmitButton } from "@/components/SubmitButton";
 import { createCompetition } from "../actions";
 import { Select } from "@/components/ui/Select";
 
@@ -69,12 +70,13 @@ export default function NewCompetitionPage() {
             />
           </div>
 
-          <button
+          {/* <button
             type="submit"
             className="bg-[#3CEFA1] text-[#0E2F21] font-bold rounded-lg py-3 mt-2"
           >
             Create Competition
-          </button>
+          </button> */}
+          <SubmitButton>Create Competition</SubmitButton>
         </form>
       </div>
     </div>

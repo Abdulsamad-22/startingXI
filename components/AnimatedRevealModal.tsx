@@ -10,6 +10,7 @@ import { ShieldMarker } from "./markers/ShieldMarker";
 import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { PitchTexture } from "./PitchTexture";
+import { PaymentGate } from "./PaymentGate";
 
 function SizeFrameIcon({ id }: { id: "story" | "square" | "landscape" }) {
   const dims = {
@@ -58,6 +59,7 @@ export function AnimatedRevealModal({
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [renderError, setRenderError] = useState<string | null>(null);
   const [markerSize, setMarkerSize] = useState(38);
+  const [gateOpen, setGateOpen] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
   const [activeSize, setActiveSize] = useState<
     "story" | "square" | "landscape"
@@ -282,7 +284,7 @@ export function AnimatedRevealModal({
             Replay
           </button>
 
-          {/* <button
+          <button
             onClick={handleRenderVideo}
             disabled={rendering}
             className="w-full mt-2 bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg py-2 text-sm disabled:opacity-50 relative overflow-hidden"
@@ -306,6 +308,13 @@ export function AnimatedRevealModal({
             </p>
           )}
 
+          <PaymentGate
+            feature="video_export"
+            open={gateOpen}
+            onOpenChange={setGateOpen}
+            onSuccess={runRenderFlow}
+          />
+
           {videoUrl && (
             <button
               onClick={handleDownload}
@@ -313,7 +322,7 @@ export function AnimatedRevealModal({
             >
               Video ready — tap to download
             </button>
-          )} */}
+          )}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

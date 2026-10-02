@@ -16,6 +16,15 @@ export const FEATURE_PRODUCT_IDS: Partial<Record<PaidFeature, string>> = {
   competition_extra_team: "prod_29bb79df4f81401a8033",
 };
 
+// test environment
+// export const FEATURE_PRODUCT_IDS: Partial<Record<PaidFeature, string>> = {
+//   template_broadcast: "prod_9675090c156e4b26a62c",
+//   template_stadium: "prod_4b7af3b0ebb042888648",
+//   template_elite: "prod_269ebdf07cd440d8b1f2",
+//   video_export: "prod_6e371d6e8360494cae8f",
+//   competition_extra_team: "prod_c39566bc848840cda9b1",
+// };
+
 export const FEATURE_LABELS: Record<PaidFeature, string> = {
   template_broadcast: "Broadcast Template",
   template_stadium: "Stadium Template",

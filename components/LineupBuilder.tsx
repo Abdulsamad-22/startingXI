@@ -6,7 +6,7 @@ import { ExportCard } from "./ExportCard";
 import { Pitch } from "./Pitch";
 import { BenchList } from "./BenchList";
 import { SquadBuilder } from "./SquadBuilder";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useLineupStore } from "@/lib/store/lineupStore";
 import { FEATURE_TO_TEMPLATE_ID } from "@/lib/payments/pricing";
@@ -18,6 +18,7 @@ import {
   DragEndEvent,
   PointerSensor,
 } from "@dnd-kit/core";
+import { PaymentCelebration } from "./PaymentsCelebration";
 
 type Formation = { id: string; name: string; slots: any; format_size: number };
 
@@ -27,6 +28,10 @@ export function LineupBuilder({
   allFormations: Formation[];
 }) {
   const [activeTab, setActiveTab] = useState<Tab>("Team Details");
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const pendingUnlockRef = useRef<{ feature: string } | null>(null);
+
   const { primaryColor, secondaryColor, formationId, teamName } =
     useLineupStore();
   const swapSlots = useLineupStore((s) => s.swapSlots);
@@ -73,37 +78,52 @@ export function LineupBuilder({
 
     if (paymentStatus !== "success" || !reference) return;
 
+    pendingUnlockRef.current = feature ? { feature } : null;
+    setCelebrationOpen(true); // pops up immediately, animation starts right away
+    router.replace(pathname); // clean the URL now, state already captured above
+
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 15;
 
     const check = setInterval(async () => {
       attempts++;
-      const result = await verifyPayment(reference); // reads the real DB row — only true if the webhook already set it
-
+      const result = await verifyPayment(reference);
       if (result.success) {
         clearInterval(check);
-        if (feature) {
-          const templateId =
-            FEATURE_TO_TEMPLATE_ID[
-              feature as keyof typeof FEATURE_TO_TEMPLATE_ID
-            ];
-          if (templateId)
-            useLineupStore.getState().setTemplate(templateId as any);
-          useLineupStore.getState().setFeatureUnlocked(feature, true);
-        }
-        router.replace(pathname);
+        setVerified(true); // lets the component play its finishing strike
       } else if (attempts >= maxAttempts) {
         clearInterval(check);
-        router.replace(pathname);
+        setCelebrationOpen(false); // give up quietly if it never confirms
       }
     }, 1000);
 
     return () => clearInterval(check);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleCelebrationClose() {
+    setCelebrationOpen(false);
+    setVerified(false);
+    const pending = pendingUnlockRef.current;
+    if (pending) {
+      const templateId =
+        FEATURE_TO_TEMPLATE_ID[
+          pending.feature as keyof typeof FEATURE_TO_TEMPLATE_ID
+        ];
+      if (templateId) useLineupStore.getState().setTemplate(templateId as any);
+      useLineupStore.getState().setFeatureUnlocked(pending.feature, true);
+      pendingUnlockRef.current = null;
+    }
+  }
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="flex flex-col lg:flex-row gap-6">
+        {celebrationOpen && (
+          <PaymentCelebration
+            verified={verified}
+            onClose={handleCelebrationClose}
+          />
+        )}
         <div className="flex-1 order-1">
           <ControlBar activeTab={activeTab} onTabChange={setActiveTab} />
 

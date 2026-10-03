@@ -3,7 +3,7 @@ import { Anton, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { FeedbackSupport } from "@/components/FeedbackSupport";
-
+import { Analytics } from "@vercel/analytics/next";
 const anton = Anton({
   subsets: ["latin"],
   weight: "400",
@@ -90,6 +90,7 @@ export default function RootLayout({
             instagramUrl="https://www.instagram.com/hoosayn_10?igsh=MWQzNDRlaHVnaTJqOA=="
           />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

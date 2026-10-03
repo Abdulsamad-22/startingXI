@@ -403,10 +403,28 @@ export async function generateFixtures(competitionId: string) {
 
   const { data: teams } = await supabase
     .from("competition_teams")
-    .select("id")
+    .select("id, name")
     .eq("competition_id", competitionId);
   if (!teams || teams.length < 2)
     throw new Error("Need at least 2 teams to generate fixtures");
+
+  const teamsWithCounts = await Promise.all(
+    teams.map(async (t) => {
+      const { count } = await supabase
+        .from("competition_squad_players")
+        .select("id", { count: "exact", head: true })
+        .eq("competition_team_id", t.id);
+      return { ...t, playerCount: count ?? 0 };
+    }),
+  );
+
+  const incomplete = teamsWithCounts.filter((t) => t.playerCount === 0);
+  if (incomplete.length > 0) {
+    const names = incomplete.map((t) => t.name).join(", ");
+    throw new Error(
+      `Squad registration isn't complete yet — ${names} ${incomplete.length > 1 ? "haven't" : "hasn't"} added any players. Register every team's squad before generating fixtures.`,
+    );
+  }
 
   const { count: existing } = await supabase
     .from("fixtures")

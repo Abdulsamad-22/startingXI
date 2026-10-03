@@ -35,6 +35,11 @@ export default async function FixturesPage({
       (t: any) => (t.competition_squad_players?.[0]?.count ?? 0) === 0,
     ) ?? [];
 
+  const incompleteTeams =
+    teamsWithCounts?.filter(
+      (t: any) => (t.competition_squad_players?.[0]?.count ?? 0) === 0,
+    ) ?? [];
+
   const generate = generateFixtures.bind(null, competitionId);
   const rounds = [...new Set(fixtures?.map((f) => f.round))];
 
@@ -55,14 +60,29 @@ export default async function FixturesPage({
         </p>
       )}
       {(!fixtures || fixtures.length === 0) && (
-        <form action={generate}>
-          <button
-            type="submit"
-            className="bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg px-4 py-2 text-sm"
-          >
-            Generate Fixtures
-          </button>
-        </form>
+        <div>
+          {incompleteTeams.length > 0 ? (
+            <div className="bg-[#1D2A25] border border-yellow-400/20 rounded-lg px-4 py-3 mb-3">
+              <p className="text-sm text-yellow-300 font-medium mb-1">
+                Squad registration isn't complete yet
+              </p>
+              <p className="text-xs text-white/50">
+                {incompleteTeams.map((t: any) => t.name).join(", ")} still need
+                {incompleteTeams.length === 1 ? "s" : ""} players added before
+                fixtures can be generated.
+              </p>
+            </div>
+          ) : (
+            <form action={generate}>
+              <button
+                type="submit"
+                className="bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg px-4 py-2 text-sm"
+              >
+                Generate Fixtures
+              </button>
+            </form>
+          )}
+        </div>
       )}
       {fixtures && fixtures.length > 0 && !hasConfirmedResults && (
         <div className="mb-6">

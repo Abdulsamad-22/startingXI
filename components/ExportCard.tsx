@@ -118,7 +118,7 @@ export function ExportCard({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="bg-[#343A38] p-4 rounded-xl">
+    <div className="bg-[#343A38] p-4 md:rounded-xl">
       <div ref={cardRef}>
         <Template>{children}</Template>
       </div>

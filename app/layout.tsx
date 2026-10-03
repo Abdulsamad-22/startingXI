@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Anton, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import { FeedbackSupport } from "@/components/FeedbackSupport";
 
 const anton = Anton({
   subsets: ["latin"],
@@ -76,9 +77,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${anton.variable} ${inter.variable}`}>
+    <html
+      lang="en"
+      className={`${anton.variable} ${inter.variable} bg-[#555958] text-white`}
+    >
       <body className="font-body">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+
+          <FeedbackSupport
+            xUrl="https://x.com/_Hoossayn"
+            instagramUrl="https://www.instagram.com/hoosayn_10?igsh=MWQzNDRlaHVnaTJqOA=="
+          />
+        </AuthProvider>
       </body>
     </html>
   );

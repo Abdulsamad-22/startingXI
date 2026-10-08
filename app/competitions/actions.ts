@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import {
   generateRoundRobin,
   generateKnockoutBracket,
@@ -17,21 +16,45 @@ export async function createCompetition(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  const maxTeams = Number(formData.get("max_teams")) || 8;
+  if (maxTeams > 8) throw new Error("PAYMENT_REQUIRED");
+
+  return insertCompetition(user.id, formData, maxTeams);
+}
+
+export async function createCompetitionPaid(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  await consumeAccess("competition_extra_team"); // throws if no confirmed, unused payment exists
+  const maxTeams = Number(formData.get("max_teams")) || 8;
+  return insertCompetition(user.id, formData, maxTeams);
+}
+
+async function insertCompetition(
+  userId: string,
+  formData: FormData,
+  maxTeams: number,
+) {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("competitions")
     .insert({
-      creator_id: user.id,
+      creator_id: userId,
       name: formData.get("name") as string,
       type: formData.get("type") as string,
       format_size: Number(formData.get("format_size")),
-      max_teams: Number(formData.get("max_teams")) || 8,
+      max_teams: maxTeams,
       max_squad_size: Number(formData.get("max_squad_size")) || 23,
     })
     .select()
     .single();
 
   if (error) throw error;
-  redirect(`/competitions/${data.id}`);
+  return data.id; // caller handles navigation now, not the action itself
 }
 
 const FREE_TEAM_LIMIT = 8;
@@ -61,26 +84,24 @@ export async function addCompetitionTeam(
   competitionId: string,
   formData: FormData,
 ) {
-  const status = await checkTeamSlotStatus(competitionId);
-  if (status === "blocked")
-    throw new Error("This competition has reached its maximum team limit");
-  if (status === "needs_payment") throw new Error("PAYMENT_REQUIRED"); // signal for the client to open PaymentGate
-
   const supabase = await createClient();
-  const { error } = await supabase.from("competition_teams").insert({
-    competition_id: competitionId,
-    name: formData.get("name") as string,
-  });
-  if (error) throw error;
-  revalidatePath(`/competitions/${competitionId}`);
-}
 
-export async function addCompetitionTeamPaid(
-  competitionId: string,
-  formData: FormData,
-) {
-  await consumeAccess("competition_extra_team"); // throws if no unused access exists — a real safety check, not just UI trust
-  const supabase = await createClient();
+  const { count } = await supabase
+    .from("competition_teams")
+    .select("id", { count: "exact", head: true })
+    .eq("competition_id", competitionId);
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("max_teams")
+    .eq("id", competitionId)
+    .single();
+
+  if (competition && count !== null && count >= competition.max_teams) {
+    throw new Error(
+      `Maximum of ${competition.max_teams} teams reached for this competition`,
+    );
+  }
+
   const { error } = await supabase.from("competition_teams").insert({
     competition_id: competitionId,
     name: formData.get("name") as string,

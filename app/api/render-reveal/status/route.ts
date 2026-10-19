@@ -6,11 +6,27 @@ export const runtime = "nodejs";
 export const maxDuration = 30;
 
 export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
-  const renderId = searchParams.get("renderId")!;
-  const bucketName = searchParams.get("bucketName")!;
-  const teamId = searchParams.get("teamId")!;
-  const sizePreset = searchParams.get("sizePreset")!;
+  const renderId = searchParams.get("renderId");
+  const bucketName = searchParams.get("bucketName");
+  const sizePreset = searchParams.get("sizePreset");
+
+  if (!renderId || !bucketName || !sizePreset) {
+    return NextResponse.json(
+      { error: "Missing render details" },
+      { status: 400 },
+    );
+  }
 
   const progress = await getRenderProgress({
     renderId,
@@ -18,13 +34,6 @@ export async function GET(req: NextRequest) {
     functionName: process.env.REMOTION_LAMBDA_FUNCTION_NAME!,
     region: "us-east-1",
   });
-
-  if (!progress.done) {
-    return NextResponse.json({
-      done: false,
-      overallProgress: progress.overallProgress ?? 0,
-    });
-  }
 
   if (progress.fatalErrorEncountered) {
     return NextResponse.json(
@@ -34,23 +43,31 @@ export async function GET(req: NextRequest) {
   }
 
   if (!progress.done) {
-    return NextResponse.json({ done: false });
+    return NextResponse.json({
+      done: false,
+      overallProgress: progress.overallProgress ?? 0,
+    });
   }
 
   const fileRes = await fetch(progress.outputFile!);
   const fileBuffer = Buffer.from(await fileRes.arrayBuffer());
 
-  const supabase = await createClient();
-  const uploadPath = `${teamId}/reveal-${sizePreset}-${Date.now()}.mp4`;
+  // Works for saved teams and unsaved lineups.
+  const uploadPath = `${user.id}/reveals/reveal-${sizePreset}-${Date.now()}.mp4`;
+
   const { data: uploaded, error } = await supabase.storage
     .from("exports")
-    .upload(uploadPath, fileBuffer, { contentType: "video/mp4" });
+    .upload(uploadPath, fileBuffer, {
+      contentType: "video/mp4",
+    });
 
-  if (error)
+  if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   const {
     data: { publicUrl },
   } = supabase.storage.from("exports").getPublicUrl(uploaded.path);
+
   return NextResponse.json({ done: true, url: publicUrl });
 }

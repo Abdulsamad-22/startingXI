@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCompetition } from "@/app/competitions/actions";
 import { PaymentGate } from "./PaymentGate";
+import { Select } from "./ui/Select";
 
 export default function CreateCompetitionForm() {
   const router = useRouter();
@@ -13,63 +14,68 @@ export default function CreateCompetitionForm() {
 
   async function handleSubmit(formData: FormData) {
     setError(null);
+
+    const maxTeams = Number(formData.get("max_teams")) || 8;
+    if (maxTeams > 8) {
+      localStorage.setItem(
+        "pending-competition",
+        JSON.stringify(Object.fromEntries(formData.entries())),
+      );
+
+      setGateOpen(true);
+      return;
+    }
+
     setLoading(true);
+
     try {
       const id = await createCompetition(formData);
       router.push(`/competitions/${id}`);
     } catch (err) {
-      if (err instanceof Error && err.message === "PAYMENT_REQUIRED") {
-        localStorage.setItem(
-          "pending-competition",
-          JSON.stringify(Object.fromEntries(formData.entries())),
-        );
-        setGateOpen(true);
-      } else {
-        setError(
-          err instanceof Error ? err.message : "Failed to create competition",
-        );
-      }
+      setError(
+        err instanceof Error ? err.message : "Failed to create competition",
+      );
     } finally {
       setLoading(false);
     }
   }
+
   return (
-    <div className="min-h-screen bg-[#555958] text-white p-6">
-      <form action={createCompetition} className="flex flex-col gap-4 max-w-sm">
+    <>
+      <form action={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label className="text-xs text-white/60">Competition name</label>
           <input
             name="name"
             required
-            className="bg-[#1D2A25] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+            className="bg-[#0a1a14] rounded-lg px-3 py-2 outline-none border border-white/10 focus:ring-2 focus:ring-[#3CEFA1] focus:border-transparent"
           />
         </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-white/60">Type</label>
-          <select
+          <Select
             name="type"
             required
-            className="bg-[#1D2A25] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
-          >
-            <option value="league">League</option>
-            <option value="cup">Cup (knockout)</option>
-          </select>
+            defaultValue="league"
+            options={[
+              { value: "league", label: "League" },
+              { value: "cup", label: "Cup (knockout)" },
+            ]}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-xs text-white/60">Format size</label>
-          <select
+          <Select
             name="format_size"
             required
-            className="bg-[#1D2A25] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
-          >
-            {[5, 7, 8, 9, 11].map((n) => (
-              <option key={n} value={n}>
-                {n}-a-side
-              </option>
-            ))}
-          </select>
+            defaultValue="11"
+            options={[5, 7, 8, 9, 11].map((n) => ({
+              value: String(n),
+              label: `${n}-a-side`,
+            }))}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -80,7 +86,7 @@ export default function CreateCompetitionForm() {
             name="max_teams"
             type="number"
             defaultValue={8}
-            className="bg-[#1D2A25] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+            className="bg-[#0a1a14] rounded-lg px-3 py-2 outline-none border border-white/10 focus:ring-2 focus:ring-[#3CEFA1] focus:border-transparent"
           />
         </div>
 
@@ -92,7 +98,7 @@ export default function CreateCompetitionForm() {
             name="max_squad_size"
             type="number"
             defaultValue={23}
-            className="bg-[#1D2A25] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+            className="bg-[#0a1a14] rounded-lg px-3 py-2 outline-none border border-white/10 focus:ring-2 focus:ring-[#3CEFA1] focus:border-transparent"
           />
         </div>
 
@@ -110,6 +116,6 @@ export default function CreateCompetitionForm() {
           onOpenChange={setGateOpen}
         />
       </form>
-    </div>
+    </>
   );
 }

@@ -1,6 +1,3 @@
-import { SubmitButton } from "@/components/SubmitButton";
-import { createCompetition } from "../actions";
-import { Select } from "@/components/ui/Select";
 import CreateCompetitionForm from "@/components/CreateCompetitionForm";
 import { CreateCompetitionPaymentListener } from "./CreateCompetitionPaymentListener";
 

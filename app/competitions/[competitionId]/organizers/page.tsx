@@ -17,12 +17,14 @@ export default async function OrganizersPage({
 
   const { data: competition } = await supabase
     .from("competitions")
-    .select("id, name, creator_id")
+    .select("id, name, creator_id, max_teams")
     .eq("id", competitionId)
     .single();
 
   if (!competition) notFound();
   if (competition.creator_id !== user?.id)
+    redirect(`/competitions/${competitionId}`);
+  if (competition.max_teams <= 8)
     redirect(`/competitions/${competitionId}`);
 
   const { data: organizers } = await supabase

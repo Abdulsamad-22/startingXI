@@ -61,7 +61,7 @@ export default async function CompetitionOverviewPage({
           </Link>
         )}
 
-        {competition.creator_id === user?.id && (
+        {competition.creator_id === user?.id && competition.max_teams > 8 && (
           <Link
             href={`/competitions/${competitionId}/organizers`}
             className="bg-[#1D2A25] hover:bg-[#1D2A25]/70 rounded-lg px-4 py-2 text-sm"

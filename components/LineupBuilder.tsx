@@ -76,6 +76,14 @@ export function LineupBuilder({
       return;
     }
 
+    if (
+      paymentStatus === "success" &&
+      feature === "video_export" &&
+      searchParams.get("resume") === "video-render"
+    ) {
+      return;
+    }
+
     if (paymentStatus !== "success" || !reference) return;
 
     pendingUnlockRef.current = feature ? { feature } : null;

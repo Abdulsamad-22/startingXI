@@ -14,11 +14,13 @@ export function PaymentGate({
   open,
   onOpenChange,
   onSuccess,
+  returnAction,
 }: {
   feature: PaidFeature;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  returnAction?: string;
 }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +34,10 @@ export function PaymentGate({
       const paymentId = crypto.randomUUID();
       const basePath = window.location.pathname;
       const existingParams = new URLSearchParams(window.location.search);
+
+      if (returnAction) {
+        existingParams.set("resume", returnAction);
+      }
 
       existingParams.set("payment", "success");
       existingParams.set("reference", paymentId);

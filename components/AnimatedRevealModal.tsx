@@ -11,6 +11,7 @@ import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { PitchTexture } from "./PitchTexture";
 import { PaymentGate } from "./PaymentGate";
+import { hasUnusedAccess } from "@/app/payments/action";
 
 function SizeFrameIcon({ id }: { id: "story" | "square" | "landscape" }) {
   const dims = {
@@ -155,7 +156,7 @@ export function AnimatedRevealModal({
       while (!done) {
         await new Promise((r) => setTimeout(r, 2000));
         const statusRes = await fetch(
-          `/api/render-reveal/status?renderId=${renderId}&bucketName=${bucketName}&teamId=${teamId}&sizePreset=${sizePreset}`,
+          `/api/render-reveal/status?renderId=${renderId}&bucketName=${bucketName}&sizePreset=${sizePreset}`,
         );
         if (!statusRes.ok) {
           const err = await statusRes.json().catch(() => ({}));
@@ -178,8 +179,17 @@ export function AnimatedRevealModal({
     }
   }
 
-  function handleRenderVideo() {
+  async function handleRenderVideo() {
+    setRenderError(null);
     setRenderProgress(0);
+
+    const hasAccess = await hasUnusedAccess("video_export");
+
+    if (!hasAccess) {
+      setGateOpen(true);
+      return;
+    }
+
     runRenderFlow();
   }
 
@@ -313,6 +323,7 @@ export function AnimatedRevealModal({
             open={gateOpen}
             onOpenChange={setGateOpen}
             onSuccess={runRenderFlow}
+            returnAction="video-render"
           />
 
           {videoUrl && (

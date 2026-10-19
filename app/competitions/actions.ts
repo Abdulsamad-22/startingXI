@@ -9,29 +9,46 @@ import {
   shuffle,
 } from "@/lib/utils/fixtures";
 import { consumeAccess } from "../payments/action";
+import { createAdminClient } from "@/lib/payments/admin";
+
+const ORGANIZER_FEATURE_TEAM_LIMIT = 8;
 
 export async function createCompetition(formData: FormData) {
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) throw new Error("Not authenticated");
 
   const maxTeams = Number(formData.get("max_teams")) || 8;
-  if (maxTeams > 8) throw new Error("PAYMENT_REQUIRED");
+
+  // Security protection: client-side checks can be bypassed.
+  if (maxTeams > 8) {
+    throw new Error("A payment is required for competitions above 8 teams.");
+  }
 
   return insertCompetition(user.id, formData, maxTeams);
 }
 
 export async function createCompetitionPaid(formData: FormData) {
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) throw new Error("Not authenticated");
 
-  await consumeAccess("competition_extra_team"); // throws if no confirmed, unused payment exists
   const maxTeams = Number(formData.get("max_teams")) || 8;
+
+  if (maxTeams <= 8) {
+    throw new Error("This competition does not require a payment.");
+  }
+
+  await consumeAccess("competition_extra_team");
+
   return insertCompetition(user.id, formData, maxTeams);
 }
 
@@ -182,6 +199,22 @@ export async function createOrganizerInvite(competitionId: string) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("creator_id, max_teams")
+    .eq("id", competitionId)
+    .single();
+
+  if (!competition || competition.creator_id !== user.id) {
+    throw new Error("Only the creator can manage organizers");
+  }
+
+  if (competition.max_teams <= ORGANIZER_FEATURE_TEAM_LIMIT) {
+    throw new Error(
+      "Co-organizers are available for paid competitions with more than 8 teams.",
+    );
+  }
+
   const { count } = await supabase
     .from("competition_organizers")
     .select("id", { count: "exact", head: true })
@@ -202,6 +235,28 @@ export async function createOrganizerInvite(competitionId: string) {
 
 export async function acceptOrganizerInvite(token: string) {
   const supabase = await createClient();
+
+  // Invited users may not have read access to the invite row, so this lookup is
+  // deliberately server-only. The RPC below still uses the invitee's session.
+  const admin = createAdminClient();
+  const { data: invite } = await admin
+    .from("competition_invites")
+    .select("competition_id")
+    .eq("token", token)
+    .maybeSingle();
+
+  if (!invite) throw new Error("This organizer invite is invalid or has expired");
+
+  const { data: competition } = await admin
+    .from("competitions")
+    .select("max_teams")
+    .eq("id", invite.competition_id)
+    .maybeSingle();
+
+  if (!competition || competition.max_teams <= ORGANIZER_FEATURE_TEAM_LIMIT) {
+    throw new Error("This organizer invite is only available for paid competitions");
+  }
+
   const { error } = await supabase.rpc("accept_competition_invite", {
     invite_token: token,
   });
@@ -216,12 +271,18 @@ export async function addOrganizer(competitionId: string, formData: FormData) {
 
   const { data: competition } = await supabase
     .from("competitions")
-    .select("creator_id")
+    .select("creator_id, max_teams")
     .eq("id", competitionId)
     .single();
 
   if (!competition || competition.creator_id !== user?.id) {
     throw new Error("Only the creator can manage organizers");
+  }
+
+  if (competition.max_teams <= ORGANIZER_FEATURE_TEAM_LIMIT) {
+    throw new Error(
+      "Co-organizers are available for paid competitions with more than 8 teams.",
+    );
   }
 
   const { count } = await supabase
@@ -250,6 +311,28 @@ export async function removeOrganizer(
   organizerId: string,
 ) {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("creator_id, max_teams")
+    .eq("id", competitionId)
+    .single();
+
+  if (!competition || competition.creator_id !== user.id) {
+    throw new Error("Only the creator can manage organizers");
+  }
+
+  if (competition.max_teams <= ORGANIZER_FEATURE_TEAM_LIMIT) {
+    throw new Error(
+      "Co-organizers are available for paid competitions with more than 8 teams.",
+    );
+  }
+
   const { error } = await supabase
     .from("competition_organizers")
     .delete()

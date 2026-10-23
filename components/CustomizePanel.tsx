@@ -47,7 +47,7 @@ export function CustomizePanel() {
   const s = useLineupStore();
 
   return (
-    <div className="flex flex-col gap-5 max-h-[90vh] overflow-y-auto pr-1">
+    <div className="flex flex-col gap-5 md:max-h-[90vh] md:overflow-y-auto md:pr-1">
       <div className="flex flex-col gap-3">
         <div>
           <p className="text-xs text-[#3CEFA1] font-semibold uppercase tracking-wide mb-2">

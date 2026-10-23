@@ -9,6 +9,7 @@ import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { PitchMarkings } from "./PitchMarkings";
 import { PitchTexture } from "./PitchTexture";
+import { formatPlayerName } from "@/lib/utils/formatPlayerName";
 
 function DroppableSlot({
   slot,
@@ -89,7 +90,7 @@ function DroppableSlot({
         )}
         {player && (
           <span className="font-body text-[0.875rem] font-medium text-white/80 max-w-[70px] spacing-medium truncate">
-            {player.name}
+            {formatPlayerName(player.name)}
           </span>
         )}
       </button>

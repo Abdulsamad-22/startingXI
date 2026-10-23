@@ -7,6 +7,7 @@ import { useLineupStore } from "@/lib/store/lineupStore";
 import { compressImage } from "@/lib/utils/compressPlayerImage";
 import { findOpenSlotForPosition } from "@/lib/utils/formation";
 import { isNumberTaken } from "@/lib/utils/validation";
+import { capitalizeName } from "@/lib/utils/formatPlayerName";
 
 export function SquadBuilder({ formatSize }: { formatSize: number }) {
   const players = useLineupStore((s) => s.players);
@@ -170,7 +171,7 @@ export function SquadBuilder({ formatSize }: { formatSize: number }) {
             <span className="w-6 h-6 flex items-center justify-center rounded-full bg-[#3CEFA1] text-[#0E2F21] font-bold text-xs">
               {p.jersey_number}
             </span>
-            <span className="flex-1">{p.name}</span>
+            <span className="flex-1">{capitalizeName(p.name)}</span>
             <span className="text-xs text-white/40">{p.position_group}</span>
             <button
               type="button"

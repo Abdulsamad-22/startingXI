@@ -16,12 +16,13 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "StartinXI | Build Your Football Starting XI",
-    template: "%s | StartinXI",
+    default: "StartingXI | Build Your Football Starting XI",
+    template: "%s | StartingXI",
   },
   description:
     "Create football lineups, choose formations, place players on the pitch, and share your perfect starting XI.",
   keywords: [
+    "lineup builder",
     "football lineup builder",
     "starting XI builder",
     "soccer lineup creator",
@@ -29,39 +30,44 @@ export const metadata: Metadata = {
     "team sheet generator",
     "football tactics board",
     "soccer formation creator",
+    "soccer lineup planner",
+    "football squad organizer",
+    "best XI maker",
+    "football lineup app",
+    "predicted lineup maker",
+    "tournament maker",
   ],
-  authors: [{ name: "StartinXI" }],
-  creator: "StartinXI",
-  applicationName: "StartinXI",
-  alternates: {
-    canonical: "/",
+  authors: [{ name: "StartingXI" }],
+  creator: "StartingXI",
+  robots: {
+    index: true,
+    follow: true,
   },
+  applicationName: "StartingXI",
+  category: "sports",
   openGraph: {
     type: "website",
     url: siteUrl,
-    siteName: "StartinXI",
-    title: "StartinXI | Build Your Football Starting XI",
+    siteName: "StartingXI",
+    locale: "en-NG",
+    title: "StartingXI | Build Your Football Starting XI",
     description:
-      "Pick a formation, add your players, arrange your team on the pitch, and share your football lineup.",
+      "Pick a formation, add your players, download a lineup graphic for WhatsApp, Instagram and X.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "StartinXI football lineup builder",
+        alt: "StartingXI football lineup builder",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "StartinXI | Build Your Football Starting XI",
+    title: "StartingXI | Build Your Football Starting XI",
     description:
       "Create, arrange, save, and share football lineups in seconds.",
     images: ["/og-image.jpg"],
-  },
-  robots: {
-    index: true,
-    follow: true,
   },
 };
 

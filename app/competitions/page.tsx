@@ -2,6 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { BackButton } from "@/components/BackButton";
 
+export const metadata = {
+  title: "Football League & Knockout Cup Maker",
+  description:
+    "Run a football league or knockout cup. Register teams and squads, generate fixtures, enter results and watch the table update automatically.",
+  alternates: { canonical: "/competitions" },
+};
+
 export default async function CompetitionsListPage() {
   const supabase = await createClient();
   const {

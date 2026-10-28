@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://startingxi.xyz/sitemap.xml",
+    sitemap: "https://www.startingxi.xyz/sitemap.xml",
   };
 }

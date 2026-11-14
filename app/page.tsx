@@ -6,15 +6,35 @@ import Link from "next/link";
 import { SeoContent } from "@/components/SeoContent";
 import { JsonLd } from "@/components/JsonLd";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ team?: string; formation?: string; size?: string }>;
+}) {
+  const { team: resumeTeamId, formation, size } = await searchParams;
   const supabase = await createClient();
 
-  const { data: defaultFormation } = await supabase
+  const requestedSize = Number(size);
+  const validSize = [5, 7, 8, 9, 11].includes(requestedSize)
+    ? requestedSize
+    : 11;
+
+  let { data: defaultFormation } = await supabase
     .from("formations")
     .select("id, name, slots, format_size")
-    .eq("name", "4-3-3")
-    .eq("format_size", 11)
-    .single();
+    .eq("name", formation ?? "4-3-3")
+    .eq("format_size", validSize)
+    .maybeSingle();
+
+  if (!defaultFormation) {
+    const fallback = await supabase
+      .from("formations")
+      .select("id, name, slots, format_size")
+      .eq("name", "4-3-3")
+      .eq("format_size", 11)
+      .maybeSingle();
+    defaultFormation = fallback.data;
+  }
 
   const { data: allFormations } = await supabase
     .from("formations")

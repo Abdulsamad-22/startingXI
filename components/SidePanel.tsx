@@ -55,7 +55,7 @@ export function SidePanel({
   // return null;
 
   return (
-    <div className="w-full md:w-72 bg-[#343A38] rounded-xl p-4 shrink-0">
+    <div className="w-full md:w-72 bg-[#343A38] rounded-xl shrink-0 py-4">
       <div className="relative">
         <div
           style={

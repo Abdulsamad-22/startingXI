@@ -4,6 +4,7 @@ import { useLineupStore } from "@/lib/store/lineupStore";
 import { DEFAULT_CUSTOMIZATION } from "@/lib/types";
 import { PitchStyleSelect } from "./PitchStyleSelect";
 import { MarkerStyleSelect } from "./MarkerStyleSelect";
+import { Select } from "./ui/Select";
 
 function ColorRow({
   label,
@@ -47,7 +48,7 @@ export function CustomizePanel() {
   const s = useLineupStore();
 
   return (
-    <div className="flex flex-col gap-5 md:max-h-[90vh] md:overflow-y-auto md:pr-1">
+    <div className="flex flex-col gap-5 md:max-h-[90vh] md:overflow-y-auto px-4">
       <div className="flex flex-col gap-3">
         <div>
           <p className="text-xs text-[#3CEFA1] font-semibold uppercase tracking-wide mb-2">
@@ -74,19 +75,21 @@ export function CustomizePanel() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-white/60">Pitch type</label>
-            <select
-              value={s.pitchPattern}
-              onChange={(e) =>
+            <Select
+              name="pitchPattern"
+              ariaLabel="Select pitch pattern"
+              defaultValue={s.pitchPattern}
+              onChange={(value) =>
                 s.setCustomization({
-                  pitchPattern: e.target.value as "solid" | "stripe" | "circle",
+                  pitchPattern: value as "solid" | "stripe" | "circle",
                 })
               }
-              className="bg-[#0A1A14] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
-            >
-              <option value="solid">Solid</option>
-              <option value="stripe">Grass Striped</option>
-              <option value="circle">Grass Bullseye</option>
-            </select>
+              options={[
+                { value: "solid", label: "Solid" },
+                { value: "stripe", label: "Grass Striped" },
+                { value: "circle", label: "Grass Bullseye" },
+              ]}
+            />
           </div>
           <ColorRow
             label="Pitch background"

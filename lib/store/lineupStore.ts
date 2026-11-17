@@ -28,7 +28,13 @@ export type LineupState = {
   players: DraftPlayer[];
   formationName: string;
   pitchStyle: "flat" | "tilted";
-  templateId: "classic" | "broadcast" | "stadium" | "elite";
+  templateId:
+    | "classic"
+    | "broadcast"
+    | "stadium"
+    | "elite"
+    | "super"
+    | "sold_xi";
   pitchPattern: "solid" | "stripe" | "circle";
   pitchBgColor: string;
   pitchStripeColor: string;

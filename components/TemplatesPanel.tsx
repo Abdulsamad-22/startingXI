@@ -158,8 +158,8 @@ export function TemplatePanel() {
   }
 
   return (
-    <div>
-      <div className="flex gap-3 flex-wrap">
+    <div className="px-4">
+      <div className="grid grid-cols-3 gap-3">
         {OPTIONS.map((opt) => {
           const Swatch = SWATCHES[opt.id];
           const isLocked = !!opt.feature && !unlockedFeatures[opt.feature];
@@ -174,7 +174,7 @@ export function TemplatePanel() {
                   : setTemplate(opt.id)
               }
               disabled={paying === opt.feature}
-              className={`relative flex flex-col items-center gap-1.5 p-1.5 rounded-lg border transition-colors ${
+              className={`relative flex min-w-0 flex-col items-center gap-1.5 rounded-lg border p-1.5 transition-colors ${
                 templateId === opt.id
                   ? "border-[#3CEFA1] bg-[#3CEFA1]/10"
                   : "border-white/10 hover:border-white/20"
@@ -183,7 +183,7 @@ export function TemplatePanel() {
               <div className="relative">
                 <Swatch color={primaryColor} />
                 {isLocked && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md">
+                  <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50">
                     {paying === opt.feature ? (
                       <span className="text-[10px] text-white animate-pulse">
                         ...

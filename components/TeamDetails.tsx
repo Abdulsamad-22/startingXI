@@ -18,7 +18,7 @@ export function TeamDetailsForm() {
   const previewSrc = localPreview ?? crestUrl;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 px-4">
       <div className="flex flex-col gap-1">
         <label className="text-xs text-white/60">Team name</label>
         <input

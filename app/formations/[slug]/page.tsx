@@ -16,7 +16,7 @@ export async function generateMetadata({
   const guide = FORMATION_GUIDES.find((f) => f.slug === slug);
   if (!guide) return {};
   return {
-    title: `${guide.name} Formation: Roles, Strengths and Free Lineup Maker`,
+    title: `${guide.name} Formation (${guide.formatSize}-a-side): Roles, Strengths and Free Lineup Maker`,
     description: `How the ${guide.name} formation works, who plays where, and when to use it. Build your ${guide.name} lineup free and download it as an image.`,
     alternates: { canonical: `/formations/${guide.slug}` },
   };
@@ -35,7 +35,7 @@ export default async function FormationPage({
     <main className="min-h-screen text-white px-4 py-12">
       <article className="max-w-2xl mx-auto text-sm leading-relaxed text-white/70">
         <h1 className="text-3xl font-bold text-white mb-3">
-          {guide.name} formation explained
+          {guide.name} formation explained ({guide.formatSize}-a-side)
         </h1>
         <p className="mb-6">{guide.intro}</p>
 

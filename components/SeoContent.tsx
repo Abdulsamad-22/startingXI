@@ -1,3 +1,6 @@
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+
 export function SeoContent() {
   return (
     <section className="max-w-3xl mx-auto px-4 py-12 text-sm leading-relaxed text-white/70">
@@ -30,6 +33,36 @@ export function SeoContent() {
         squads, generate fixtures, enter results and let the table update
         automatically.
       </p>
+
+      <h2 className="text-lg font-semibold text-white mb-2">
+        Formation Guides
+      </h2>
+      <p className="mb-3">
+        Not sure which shape to pick? Read how each one works, then build it in
+        one tap.
+      </p>
+      <ul className="flex flex-wrap gap-2 mb-6">
+        {["4-3-3", "4-4-2", "4-2-3-1", "3-5-2", "2-3-1", "1-2-1"].map(
+          (slug) => (
+            <li key={slug}>
+              <Link
+                href={`/formations/${slug}`}
+                className="rounded-full border border-white/15 px-3 py-1 hover:border-[#3CEFA1] hover:text-[#3CEFA1]"
+              >
+                {slug}
+              </Link>
+            </li>
+          ),
+        )}
+        <li>
+          <Link
+            href="/formations"
+            className="rounded-full border border-[#3CEFA1]/40 px-3 py-1 text-[#3CEFA1]"
+          >
+            All formations <ArrowRight className="inline-block w-3 h-3 ml-1" />
+          </Link>
+        </li>
+      </ul>
 
       <h2 className="text-lg font-semibold text-white mb-2">Pricing</h2>
       <p className="mb-6">

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { PaymentGate } from "./PaymentGate";
 
 const OPTIONS: {
-  id: "classic" | "broadcast" | "stadium" | "elite";
+  id: "classic" | "broadcast" | "stadium" | "elite" | "super" | "sold_xi";
   label: string;
   feature: PaidFeature | null;
 }[] = [
@@ -15,6 +15,8 @@ const OPTIONS: {
   { id: "broadcast", label: "Broadcast", feature: "template_broadcast" },
   { id: "stadium", label: "Stadium", feature: "template_stadium" },
   { id: "elite", label: "Elite", feature: "template_elite" },
+  { id: "super", label: "Super Team", feature: "template_super" },
+  { id: "sold_xi", label: "Sold XI", feature: null },
 ];
 
 function ClassicSwatch({ color }: { color: string }) {
@@ -103,11 +105,112 @@ function EliteSwatch({ color }: { color: string }) {
   );
 }
 
+function SuperTeamSwatch({ color }: { color: string }) {
+  const stripes = `repeating-linear-gradient(115deg, ${color} 0 2px, transparent 2px 5px)`;
+
+  return (
+    <div
+      className="w-16 h-20 rounded-md p-1.5 flex flex-col items-center gap-1 relative overflow-hidden"
+      style={{
+        background: `radial-gradient(circle at 50% 0%, #3a1d78, #140a30 70%)`,
+      }}
+    >
+      {/* Corner stripes */}
+      <div
+        className="absolute top-0 left-0 w-8 h-8"
+        style={{
+          backgroundImage: stripes,
+          WebkitMaskImage: "linear-gradient(135deg, #000 20%, transparent 70%)",
+          maskImage: "linear-gradient(135deg, #000 20%, transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-0 w-8 h-8"
+        style={{
+          backgroundImage: stripes,
+          WebkitMaskImage: "linear-gradient(315deg, #000 20%, transparent 70%)",
+          maskImage: "linear-gradient(315deg, #000 20%, transparent 70%)",
+        }}
+      />
+
+      {/* Crest */}
+      <div
+        className="relative w-3 h-3 rounded-full border"
+        style={{ borderColor: color }}
+      />
+
+      {/* Title bar */}
+      <div className="relative w-10 h-1.5 rounded-sm bg-white/90" />
+      <div
+        className="relative w-3 h-1 rounded-sm"
+        style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
+      />
+
+      {/* Mini pitch */}
+      <div
+        className="relative flex-1 w-full rounded-[2px]"
+        style={{ border: `1px solid ${color}88` }}
+      >
+        <div
+          className="absolute left-0 right-0 top-1/2 h-px"
+          style={{ backgroundColor: `${color}88` }}
+        />
+        <div
+          className="absolute left-1/2 top-1/2 w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ border: `1px solid ${color}88` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SoldXISwatch({ color }: { color: string }) {
+  return (
+    <div
+      className="w-16 h-20 rounded-md p-1.5 flex flex-col items-center gap-1 relative overflow-hidden"
+      style={{
+        background: `radial-gradient(ellipse at 50% 35%, ${color}66, #07102e 60%, #030816)`,
+      }}
+    >
+      {/* Crest: top right */}
+      <div
+        className="absolute top-1 right-1 w-2.5 h-3 rounded-[2px]"
+        style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
+      />
+
+      {/* Title */}
+      <div className="relative mt-0.5 w-9 h-2 rounded-[1px] bg-white/90" />
+      {/* Sub-title bar */}
+      <div
+        className="relative w-6 h-1.5"
+        style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}` }}
+      />
+
+      {/* Player dots: 1-4-3-2-1 style cluster */}
+      <div className="relative flex-1 w-full flex flex-col justify-around items-center py-0.5">
+        {[1, 3, 3, 2, 1].map((n, row) => (
+          <div key={row} className="flex gap-1.5">
+            {Array.from({ length: n }).map((_, i) => (
+              <span
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-white/80"
+                style={{ boxShadow: `0 0 4px ${color}` }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const SWATCHES = {
   classic: ClassicSwatch,
   broadcast: BroadcastSwatch,
   stadium: StadiumSwatch,
   elite: EliteSwatch,
+  super: SuperTeamSwatch,
+  sold_xi: SoldXISwatch,
 };
 
 function LockIcon() {
@@ -173,7 +276,7 @@ export function TemplatePanel() {
                   ? handleLockClick(opt.feature, opt.id)
                   : setTemplate(opt.id)
               }
-              disabled={paying === opt.feature}
+              disabled={!!opt.feature && paying === opt.feature}
               className={`relative flex min-w-0 flex-col items-center gap-1.5 rounded-lg border p-1.5 transition-colors ${
                 templateId === opt.id
                   ? "border-[#3CEFA1] bg-[#3CEFA1]/10"

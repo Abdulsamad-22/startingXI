@@ -1,6 +1,7 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { capitalizeName } from "@/lib/utils/formatPlayerName";
 
 export function SuperTeamTemplate({ children }: { children: React.ReactNode }) {
   const {
@@ -80,7 +81,7 @@ export function SuperTeamTemplate({ children }: { children: React.ReactNode }) {
             className="text-sm font-semibold mt-2 tracking-wide"
             style={{ color: primaryColor }}
           >
-            Coach: {coachName}
+            Coach: {capitalizeName(coachName)}
           </p>
         )}
       </div>

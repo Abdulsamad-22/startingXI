@@ -1,6 +1,7 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { capitalizeName } from "@/lib/utils/formatPlayerName";
 
 export function ClassicTemplate({ children }: { children: React.ReactNode }) {
   const {
@@ -30,7 +31,7 @@ export function ClassicTemplate({ children }: { children: React.ReactNode }) {
           </h2>
           {displayCoach && coachName && (
             <p className="font-body text-sm text-white/60">
-              Coach: {coachName}
+              Coach: {capitalizeName(coachName)}
             </p>
           )}
           <p className="text-[#3CEFA1] font-bold">{formationName}</p>

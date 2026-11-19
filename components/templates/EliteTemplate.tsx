@@ -1,10 +1,18 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { capitalizeName } from "@/lib/utils/formatPlayerName";
 
 export function EliteTemplate({ children }: { children: React.ReactNode }) {
-  const { teamName, formationName, crestUrl, crestFile, primaryColor } =
-    useLineupStore();
+  const {
+    teamName,
+    formationName,
+    crestUrl,
+    coachName,
+    displayCoach,
+    crestFile,
+    primaryColor,
+  } = useLineupStore();
   const crestSrc = crestFile ? URL.createObjectURL(crestFile) : crestUrl;
 
   return (
@@ -92,11 +100,17 @@ export function EliteTemplate({ children }: { children: React.ReactNode }) {
         </span>
       </div>
 
-      <p className="relative text-center text-sm font-semibold text-white/80 uppercase tracking-wide mb-3 shrink-0">
+      <p className="relative text-center text-sm font-semibold text-white/80 uppercase tracking-wide mx-auto max-w-[320px] truncate mb-3 shrink-0">
         {teamName}
       </p>
 
       <div className="relative">{children}</div>
+
+      {displayCoach && coachName && (
+        <p className="relative mt-3 text-[12px] italic font-semibold text-white/70">
+          Coach: {capitalizeName(coachName)}
+        </p>
+      )}
     </div>
   );
 }

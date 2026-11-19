@@ -1,6 +1,7 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { capitalizeName } from "@/lib/utils/formatPlayerName";
 
 export function SoldXITemplate({ children }: { children: React.ReactNode }) {
   const {
@@ -72,7 +73,7 @@ export function SoldXITemplate({ children }: { children: React.ReactNode }) {
       {/* Footnote */}
       {displayCoach && coachName && (
         <p className="relative mt-3 text-[12px] italic font-semibold text-white/70">
-          Coach: {coachName}
+          Coach: {capitalizeName(coachName)}
         </p>
       )}
     </div>

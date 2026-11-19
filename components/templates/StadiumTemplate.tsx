@@ -1,6 +1,7 @@
 "use client";
 
 import { useLineupStore } from "@/lib/store/lineupStore";
+import { capitalizeName } from "@/lib/utils/formatPlayerName";
 
 export function StadiumTemplate({ children }: { children: React.ReactNode }) {
   const {
@@ -46,7 +47,9 @@ export function StadiumTemplate({ children }: { children: React.ReactNode }) {
             {teamName}
           </h2>
           {displayCoach && coachName && (
-            <p className="text-sm text-white/50 mt-1">Coach: {coachName}</p>
+            <p className="text-sm text-white/50 mt-1">
+              Coach: {capitalizeName(coachName)}
+            </p>
           )}
           <p className="font-bold mt-1" style={{ color: primaryColor }}>
             {formationName}

@@ -88,7 +88,7 @@ export function SidePanel({
       </div>
 
       {overflowing && (
-        <div className="mt-2 flex justify-end md:hidden">
+        <div className="mt-2 flex justify-end md:hidden pr-4">
           <button
             type="button"
             onClick={() => setExpanded((e) => !e)}

@@ -3,6 +3,7 @@ import { generateFixtures, confirmResult } from "@/app/competitions/actions";
 import { ScoreEntryForm } from "@/components/ScoreEntryForm";
 import { BackButton } from "@/components/BackButton";
 import { ReshuffleButton } from "@/components/ReshuffleButton";
+import Link from "next/link";
 
 export default async function FixturesPage({
   params,
@@ -35,6 +36,9 @@ export default async function FixturesPage({
       (t: any) => (t.competition_squad_players?.[0]?.count ?? 0) === 0,
     ) ?? [];
 
+  const teamCount = teamsWithCounts?.length ?? 0;
+  const hasEnoughTeams = teamCount >= 2;
+
   const generate = generateFixtures.bind(null, competitionId);
   const rounds = [...new Set(fixtures?.map((f) => f.round))];
 
@@ -54,16 +58,38 @@ export default async function FixturesPage({
           registered yet — you can still generate fixtures and add squads later.
         </p>
       )}
-      {(!fixtures || fixtures.length === 0) && (
-        <form action={generate}>
-          <button
-            type="submit"
-            className="bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg px-4 py-2 text-sm"
-          >
-            Generate Fixtures
-          </button>
-        </form>
-      )}
+      {(!fixtures || fixtures.length === 0) &&
+        (hasEnoughTeams ? (
+          <form action={generate}>
+            <button
+              type="submit"
+              className="bg-[#3CEFA1] text-[#0E2F21] font-semibold rounded-lg px-4 py-2 text-sm"
+            >
+              Generate Fixtures
+            </button>
+          </form>
+        ) : (
+          <div className="rounded-xl border border-white/10 bg-[#343a38] p-5">
+            <h2 className="text-base font-semibold text-white">
+              {teamCount === 0
+                ? "No teams registered yet"
+                : "Add one more team to generate fixtures"}
+            </h2>
+
+            <p className="mt-1 text-sm text-white/50">
+              {teamCount === 0
+                ? "Register at least two teams before generating fixtures."
+                : "Fixtures need at least two registered teams."}
+            </p>
+
+            <Link
+              href={`/competitions/${competitionId}`}
+              className="mt-4 inline-flex rounded-lg bg-[#3CEFA1] px-4 py-2 text-sm font-semibold text-[#0E2F21]"
+            >
+              Register teams
+            </Link>
+          </div>
+        ))}
       {fixtures && fixtures.length > 0 && !hasConfirmedResults && (
         <div className="mb-6">
           <ReshuffleButton competitionId={competitionId} />

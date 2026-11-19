@@ -34,7 +34,7 @@ export function AddTeamForm({ competitionId }: { competitionId: string }) {
           <input
             name="name"
             required
-            className="bg-[#c4c4c4] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+            className="bg-[#c4c4c4] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1] text-[#1D2A25]"
           />
         </div>
         <button

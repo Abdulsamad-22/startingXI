@@ -12,6 +12,12 @@ export default async function StandingsPage({
     comp_id: competitionId,
   });
 
+  const { data: teams } = await supabase
+    .from("competition_teams")
+    .select("id, name")
+    .eq("competition_id", competitionId)
+    .order("name", { ascending: true });
+
   const { count: totalFixtures } = await supabase
     .from("fixtures")
     .select("id", { count: "exact", head: true })
@@ -27,6 +33,19 @@ export default async function StandingsPage({
     totalFixtures !== null &&
     totalFixtures > 0 &&
     totalFixtures === confirmedFixtures;
+
+  const hasConfirmedResults = (confirmedFixtures ?? 0) > 0;
+
+  const displayStandings = hasConfirmedResults
+    ? (standings ?? [])
+    : (teams ?? []).map((team) => ({
+        team_id: team.id,
+        team_name: team.name,
+        played: 0,
+        goals_for: 0,
+        goals_against: 0,
+        points: 0,
+      }));
 
   return (
     <div className="min-h-screen bg-[#555958] text-white p-6">
@@ -47,7 +66,7 @@ export default async function StandingsPage({
           </tr>
         </thead>
         <tbody>
-          {standings?.map((s: any, i: number) => {
+          {displayStandings.map((s: any, i: number) => {
             const isChampion = seasonComplete && i === 0;
             return (
               <tr

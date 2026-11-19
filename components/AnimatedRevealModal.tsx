@@ -11,7 +11,8 @@ import { JerseyMarker } from "./markers/JerseyMarker";
 import { CircleMarker } from "./markers/CircleMarker";
 import { PitchTexture } from "./PitchTexture";
 import { PaymentGate } from "./PaymentGate";
-import { hasUnusedAccess } from "@/app/payments/action";
+import { hasUnusedAccess, verifyPayment } from "@/app/payments/action";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 function SizeFrameIcon({ id }: { id: "story" | "square" | "landscape" }) {
   const dims = {
@@ -27,6 +28,28 @@ function SizeFrameIcon({ id }: { id: "story" | "square" | "landscape" }) {
     />
   );
 }
+
+const PENDING_VIDEO_RENDER_KEY = "pending-video-render";
+
+type RevealRenderPayload = {
+  teamId: string;
+  teamName: string;
+  formationName: string;
+  primaryColor: string;
+  pitchPattern: string;
+  pitchBgColor: string;
+  pitchStripeColor: string;
+  pitchLineColor: string;
+  sizePreset: "story" | "square" | "landscape";
+  players: {
+    id: string;
+    name: string;
+    jersey_number: number;
+    photo_url: string | null;
+    slot_x: number;
+    slot_y: number;
+  }[];
+};
 
 export function AnimatedRevealModal({
   open,
@@ -66,6 +89,11 @@ export function AnimatedRevealModal({
     "story" | "square" | "landscape"
   >("story");
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const resumingPaymentRef = useRef(false);
+
   const SIZE_OPTIONS = [
     { id: "story" as const, label: "Story", ratio: "9:16" },
     { id: "square" as const, label: "Square", ratio: "1:1" },
@@ -79,6 +107,34 @@ export function AnimatedRevealModal({
         POSITION_GROUPS.indexOf(a.position_group as any) -
         POSITION_GROUPS.indexOf(b.position_group as any),
     );
+
+  function createRenderPayload(): RevealRenderPayload {
+    return {
+      teamId: useLineupStore.getState().teamId,
+      teamName,
+      formationName,
+      primaryColor: jerseyColor,
+      pitchPattern,
+      pitchBgColor,
+      pitchStripeColor,
+      pitchLineColor,
+      sizePreset: activeSize,
+      players: starters.map((player) => {
+        const slot = slots.find(
+          (item) => item.slot_index === player.slot_index,
+        );
+
+        return {
+          id: player.id,
+          name: player.name,
+          jersey_number: player.jersey_number,
+          photo_url: player.photo_url,
+          slot_x: slot?.x ?? 50,
+          slot_y: slot?.y ?? 50,
+        };
+      }),
+    };
+  }
 
   useEffect(() => {
     if (!open || !containerRef.current) return;
@@ -119,50 +175,47 @@ export function AnimatedRevealModal({
     URL.revokeObjectURL(blobUrl);
   }
 
-  async function runRenderFlow() {
+  async function runRenderFlow(payload: RevealRenderPayload) {
     setRendering(true);
     setRenderError(null);
+
     try {
       const startRes = await fetch("/api/render-reveal", {
         method: "POST",
-        body: JSON.stringify({
-          teamId: useLineupStore.getState().teamId,
-          teamName,
-          formationName,
-          primaryColor: jerseyColor,
-          pitchPattern,
-          pitchBgColor,
-          pitchStripeColor,
-          pitchLineColor,
-          sizePreset: activeSize,
-          players: starters.map((p) => {
-            const slot = slots.find((s) => s.slot_index === p.slot_index);
-            return {
-              id: p.id,
-              name: p.name,
-              jersey_number: p.jersey_number,
-              photo_url: p.photo_url,
-              slot_x: slot?.x ?? 50,
-              slot_y: slot?.y ?? 50,
-            };
-          }),
-        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
-      if (!startRes.ok) throw new Error("Failed to start render");
-      const { renderId, bucketName, teamId, sizePreset } =
-        await startRes.json();
+
+      if (startRes.status === 402) {
+        setGateOpen(true);
+        return;
+      }
+
+      if (!startRes.ok) {
+        const error = await startRes.json().catch(() => ({}));
+        throw new Error(error.error || "Failed to start render");
+      }
+
+      const { renderId, bucketName, sizePreset } = await startRes.json();
 
       let done = false;
+
       while (!done) {
-        await new Promise((r) => setTimeout(r, 2000));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
         const statusRes = await fetch(
           `/api/render-reveal/status?renderId=${renderId}&bucketName=${bucketName}&sizePreset=${sizePreset}`,
         );
+
         if (!statusRes.ok) {
-          const err = await statusRes.json().catch(() => ({}));
-          throw new Error(err.error || "Render failed");
+          const error = await statusRes.json().catch(() => ({}));
+          throw new Error(error.error || "Render failed");
         }
+
         const status = await statusRes.json();
+
         if (status.done) {
           done = true;
           setVideoUrl(status.url);
@@ -170,9 +223,9 @@ export function AnimatedRevealModal({
           setRenderProgress(status.overallProgress ?? 0);
         }
       }
-    } catch (err) {
+    } catch (error) {
       setRenderError(
-        err instanceof Error ? err.message : "Something went wrong",
+        error instanceof Error ? error.message : "Something went wrong",
       );
     } finally {
       setRendering(false);
@@ -183,15 +236,95 @@ export function AnimatedRevealModal({
     setRenderError(null);
     setRenderProgress(0);
 
+    const payload = createRenderPayload();
     const hasAccess = await hasUnusedAccess("video_export");
 
     if (!hasAccess) {
+      // Preserve the exact video request across the Bachs redirect.
+      sessionStorage.setItem(PENDING_VIDEO_RENDER_KEY, JSON.stringify(payload));
+
       setGateOpen(true);
       return;
     }
 
-    runRenderFlow();
+    void runRenderFlow(payload);
   }
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const reference = searchParams.get("reference");
+    const feature = searchParams.get("feature");
+    const resume = searchParams.get("resume");
+
+    if (
+      paymentStatus === "cancelled" &&
+      feature === "video_export" &&
+      resume === "video-render"
+    ) {
+      sessionStorage.removeItem(PENDING_VIDEO_RENDER_KEY);
+      router.replace(pathname);
+      return;
+    }
+
+    if (
+      paymentStatus !== "success" ||
+      feature !== "video_export" ||
+      resume !== "video-render" ||
+      !reference ||
+      resumingPaymentRef.current
+    ) {
+      return;
+    }
+
+    const paymentReference = reference;
+
+    resumingPaymentRef.current = true;
+    let cancelled = false;
+
+    async function waitForPayment() {
+      for (let attempt = 0; attempt < 15; attempt++) {
+        if (cancelled) return;
+
+        const result = await verifyPayment(paymentReference);
+
+        if (result.success) {
+          const pendingRender = sessionStorage.getItem(
+            PENDING_VIDEO_RENDER_KEY,
+          );
+
+          if (!pendingRender) {
+            setRenderError(
+              "Your payment was confirmed, but the video request expired. Please try again.",
+            );
+            router.replace(pathname);
+            return;
+          }
+
+          const payload = JSON.parse(pendingRender) as RevealRenderPayload;
+
+          sessionStorage.removeItem(PENDING_VIDEO_RENDER_KEY);
+          setGateOpen(false);
+          onOpenChange(true);
+          router.replace(pathname);
+
+          void runRenderFlow(payload);
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      setRenderError(
+        "We could not confirm your payment yet. Please refresh and try again.",
+      );
+    }
+
+    void waitForPayment();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, pathname, router, onOpenChange]);
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -322,7 +455,6 @@ export function AnimatedRevealModal({
             feature="video_export"
             open={gateOpen}
             onOpenChange={setGateOpen}
-            onSuccess={runRenderFlow}
             returnAction="video-render"
           />
 

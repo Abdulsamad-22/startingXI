@@ -9,23 +9,24 @@ export const FEATURE_PRICES = {
 
 export type PaidFeature = keyof typeof FEATURE_PRICES;
 
-export const FEATURE_PRODUCT_IDS: Partial<Record<PaidFeature, string>> = {
-  template_broadcast: "prod_af57bd9713824601b850",
-  template_stadium: "prod_2ff974cc6ec8410d93b7",
-  template_elite: "prod_380054f1921f441e9cd7",
-  template_super: "prod_9f51cdca4ad64a77929b",
-  video_export: "prod_3ba9e53290d04dc899c6",
-  competition_extra_team: "prod_29bb79df4f81401a8033",
-};
+// export const FEATURE_PRODUCT_IDS: Partial<Record<PaidFeature, string>> = {
+//   template_broadcast: "prod_af57bd9713824601b850",
+//   template_stadium: "prod_2ff974cc6ec8410d93b7",
+//   template_elite: "prod_380054f1921f441e9cd7",
+//   template_super: "prod_9f51cdca4ad64a77929b",
+//   video_export: "prod_3ba9e53290d04dc899c6",
+//   competition_extra_team: "prod_29bb79df4f81401a8033",
+// };
 
 // test environment
-// export const FEATURE_PRODUCT_IDS: Partial<Record<PaidFeature, string>> = {
-//   template_broadcast: "prod_9675090c156e4b26a62c",
-//   template_stadium: "prod_4b7af3b0ebb042888648",
-//   template_elite: "prod_269ebdf07cd440d8b1f2",
-//   video_export: "prod_6e371d6e8360494cae8f",
-//   competition_extra_team: "prod_c39566bc848840cda9b1",
-// };
+export const FEATURE_PRODUCT_IDS: Partial<Record<PaidFeature, string>> = {
+  template_broadcast: "prod_9675090c156e4b26a62c",
+  template_stadium: "prod_4b7af3b0ebb042888648",
+  template_elite: "prod_269ebdf07cd440d8b1f2",
+  template_super: "prod_f881d6daf094464ebfc2",
+  video_export: "prod_6e371d6e8360494cae8f",
+  competition_extra_team: "prod_c39566bc848840cda9b1",
+};
 
 export const FEATURE_LABELS: Record<PaidFeature, string> = {
   template_broadcast: "Broadcast Template",

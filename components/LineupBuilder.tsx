@@ -108,19 +108,27 @@ export function LineupBuilder({
     return () => clearInterval(check);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  function handleCelebrationGoal() {
+    const pending = pendingUnlockRef.current;
+
+    if (!pending) return;
+
+    const templateId =
+      FEATURE_TO_TEMPLATE_ID[
+        pending.feature as keyof typeof FEATURE_TO_TEMPLATE_ID
+      ];
+
+    if (templateId) {
+      useLineupStore.getState().setTemplate(templateId as any);
+    }
+
+    useLineupStore.getState().setFeatureUnlocked(pending.feature, true);
+    pendingUnlockRef.current = null;
+  }
+
   function handleCelebrationClose() {
     setCelebrationOpen(false);
     setVerified(false);
-    const pending = pendingUnlockRef.current;
-    if (pending) {
-      const templateId =
-        FEATURE_TO_TEMPLATE_ID[
-          pending.feature as keyof typeof FEATURE_TO_TEMPLATE_ID
-        ];
-      if (templateId) useLineupStore.getState().setTemplate(templateId as any);
-      useLineupStore.getState().setFeatureUnlocked(pending.feature, true);
-      pendingUnlockRef.current = null;
-    }
   }
 
   return (

@@ -245,7 +245,8 @@ export async function acceptOrganizerInvite(token: string) {
     .eq("token", token)
     .maybeSingle();
 
-  if (!invite) throw new Error("This organizer invite is invalid or has expired");
+  if (!invite)
+    throw new Error("This organizer invite is invalid or has expired");
 
   const { data: competition } = await admin
     .from("competitions")
@@ -254,7 +255,9 @@ export async function acceptOrganizerInvite(token: string) {
     .maybeSingle();
 
   if (!competition || competition.max_teams <= ORGANIZER_FEATURE_TEAM_LIMIT) {
-    throw new Error("This organizer invite is only available for paid competitions");
+    throw new Error(
+      "This organizer invite is only available for paid competitions",
+    );
   }
 
   const { error } = await supabase.rpc("accept_competition_invite", {
@@ -637,6 +640,93 @@ export async function confirmResult(
         .eq("id", fixture.next_fixture_id);
     }
   }
+
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("type")
+    .eq("id", competitionId)
+    .single();
+
+  let matchdayComplete = false;
+
+  if (competition?.type === "league") {
+    const { data: roundFixtures } = await supabase
+      .from("fixtures")
+      .select("id, confirmed_at")
+      .eq("competition_id", competitionId)
+      .eq("round", fixture.round);
+
+    matchdayComplete =
+      !!roundFixtures &&
+      roundFixtures.length > 0 &&
+      roundFixtures.every((roundFixture) => roundFixture.confirmed_at !== null);
+  }
+
+  revalidatePath(`/competitions/${competitionId}/fixtures`);
+  revalidatePath(`/competitions/${competitionId}/standings`);
+
+  return {
+    matchdayComplete,
+    round: fixture.round,
+  };
+}
+
+export async function scheduleFixture(
+  competitionId: string,
+  fixtureId: string,
+  kickoffAt: string | null,
+) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("creator_id")
+    .eq("id", competitionId)
+    .single();
+
+  if (!competition) throw new Error("Competition not found");
+
+  const { data: organizer } = await supabase
+    .from("competition_organizers")
+    .select("id")
+    .eq("competition_id", competitionId)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const canManage = competition.creator_id === user.id || organizer !== null;
+
+  if (!canManage) {
+    throw new Error("Only an organizer can schedule fixtures");
+  }
+
+  const { data: fixture } = await supabase
+    .from("fixtures")
+    .select("id")
+    .eq("id", fixtureId)
+    .eq("competition_id", competitionId)
+    .maybeSingle();
+
+  if (!fixture) throw new Error("Fixture not found");
+
+  if (kickoffAt && Number.isNaN(new Date(kickoffAt).getTime())) {
+    throw new Error("Please choose a valid match date and time");
+  }
+
+  const { error } = await supabase
+    .from("fixtures")
+    .update({
+      kickoff_at: kickoffAt,
+    })
+    .eq("id", fixtureId)
+    .eq("competition_id", competitionId);
+
+  if (error) throw error;
 
   revalidatePath(`/competitions/${competitionId}/fixtures`);
 }

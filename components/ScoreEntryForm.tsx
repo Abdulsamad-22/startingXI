@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { confirmResult } from "@/app/competitions/actions";
 import { Check } from "lucide-react";
 
@@ -19,14 +20,19 @@ export function ScoreEntryForm({
   const [awayPens, setAwayPens] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+
   const showPenalties =
     isCup && homeScore !== "" && awayScore !== "" && homeScore === awayScore;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
+
     try {
-      await confirmResult(
+      const result = await confirmResult(
         competitionId,
         fixtureId,
         Number(homeScore),
@@ -34,8 +40,30 @@ export function ScoreEntryForm({
         showPenalties ? Number(homePens) : undefined,
         showPenalties ? Number(awayPens) : undefined,
       );
+
+      if (result.matchdayComplete) {
+        const completedMatchday = {
+          competitionId,
+          round: result.round,
+        };
+
+        sessionStorage.setItem(
+          "completed-matchday",
+          JSON.stringify(completedMatchday),
+        );
+
+        window.dispatchEvent(
+          new CustomEvent("matchday-complete", {
+            detail: completedMatchday,
+          }),
+        );
+      }
+
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to confirm result");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -59,7 +87,12 @@ export function ScoreEntryForm({
           required
           className="no-spinner w-10 bg-[#0A1A14] rounded px-1 py-1 text-center text-sm outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
-        <button type="submit" className="text-xs text-[#3CEFA1] ml-1">
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="ml-1 text-xs text-[#3CEFA1] disabled:opacity-50"
+        >
           <Check size={16} />
         </button>
       </div>

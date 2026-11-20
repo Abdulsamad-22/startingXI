@@ -4,6 +4,8 @@ import { ScoreEntryForm } from "@/components/ScoreEntryForm";
 import { BackButton } from "@/components/BackButton";
 import { ReshuffleButton } from "@/components/ReshuffleButton";
 import Link from "next/link";
+import { MatchdayCompletionPrompt } from "@/components/MatchdayCompletionPrompt";
+import { FixtureScheduleForm } from "@/components/FixtureScheduleForm";
 
 export default async function FixturesPage({
   params,
@@ -15,9 +17,10 @@ export default async function FixturesPage({
 
   const { data: competition } = await supabase
     .from("competitions")
-    .select("type")
+    .select("type, timezone")
     .eq("id", competitionId)
     .single();
+
   const { data: fixtures } = await supabase
     .from("fixtures")
     .select(
@@ -51,6 +54,8 @@ export default async function FixturesPage({
         label="Back to Competition"
       />
       <h1 className="text-2xl font-bold mb-6">Fixtures</h1>
+      <MatchdayCompletionPrompt competitionId={competitionId} />
+
       {teamsWithNoSquad.length > 0 && (!fixtures || fixtures.length === 0) && (
         <p className="text-xs text-white/40 mb-2">
           {teamsWithNoSquad.length} team
@@ -97,7 +102,7 @@ export default async function FixturesPage({
       )}
 
       {rounds.map((round) => (
-        <div key={round} className="mb-6">
+        <div key={round} id={`matchday-${round}`} className="mb-6 scroll-mt-6">
           <h2 className="text-sm text-white/50 uppercase tracking-wide mb-2">
             {competition?.type === "cup"
               ? `Round ${round}`
@@ -107,31 +112,40 @@ export default async function FixturesPage({
             {fixtures
               ?.filter((f) => f.round === round)
               .map((f) => (
-                <div
-                  key={f.id}
-                  className="bg-[#343a38] rounded-lg px-4 py-3 flex items-center gap-3"
-                >
-                  <span className="flex-1 text-right">
-                    {f.home?.name ?? "TBD"}
-                  </span>
-                  {f.confirmed_at ? (
-                    <span className="font-bold text-[#3CEFA1] flex items-center gap-1">
-                      {f.home_score} – {f.away_score}
-                      {f.home_penalties !== null &&
-                        f.away_penalties !== null && (
-                          <span className="text-xs text-white/50 font-normal">
-                            ({f.home_penalties}–{f.away_penalties} pens)
-                          </span>
-                        )}
+                <div key={f.id} className="rounded-lg bg-[#343a38] px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex-1 text-right">
+                      {f.home?.name ?? "TBD"}
                     </span>
-                  ) : (
-                    <ScoreEntryForm
+
+                    {f.confirmed_at ? (
+                      <span className="flex items-center gap-1 font-bold text-[#3CEFA1]">
+                        {f.home_score} – {f.away_score}
+                        {f.home_penalties !== null &&
+                          f.away_penalties !== null && (
+                            <span className="text-xs font-normal text-white/50">
+                              ({f.home_penalties}–{f.away_penalties} pens)
+                            </span>
+                          )}
+                      </span>
+                    ) : (
+                      <ScoreEntryForm
+                        competitionId={competitionId}
+                        fixtureId={f.id}
+                        isCup={competition?.type === "cup"}
+                      />
+                    )}
+
+                    <span className="flex-1">{f.away?.name ?? "TBD"}</span>
+                  </div>
+
+                  <div className="mt-3 flex justify-center border-t border-white/5 pt-2">
+                    <FixtureScheduleForm
                       competitionId={competitionId}
                       fixtureId={f.id}
-                      isCup={competition?.type === "cup"}
+                      kickoffAt={f.kickoff_at}
                     />
-                  )}
-                  <span className="flex-1">{f.away?.name ?? "TBD"}</span>
+                  </div>
                 </div>
               ))}
           </div>

@@ -31,7 +31,7 @@ export default function Loading() {
         {Array.from({ length: 5 }).map((_, i) => (
           <div
             key={i}
-            className="flex items-center justify-between rounded-lg bg-[#1D2A25] px-4 py-3"
+            className="flex items-center justify-between rounded-lg bg-[#343a38] px-4 py-3"
           >
             <Skeleton
               className="h-5 w-32"

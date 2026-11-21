@@ -33,7 +33,7 @@ export default async function CompetitionSquadPage({
     .order("jersey_number");
 
   return (
-    <div className="min-h-screen bg-[#555958] text-white p-6">
+    <div className="min-h-screen bg-[#555958] text-white p-6 space-y-4">
       <HydrateCompetitionSquad
         data={{
           competitionId,

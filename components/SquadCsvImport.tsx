@@ -44,7 +44,7 @@ export function SquadCsvImport({
   }
 
   return (
-    <div className="bg-[#1D2A25] rounded-xl p-4">
+    <div className="bg-[#343a38] rounded-xl p-4">
       <p className="text-sm text-white/70 mb-2">
         Bulk import from CSV (Name, Jersey Number, Position)
       </p>

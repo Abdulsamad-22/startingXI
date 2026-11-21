@@ -22,7 +22,7 @@ export default function AcceptInvitePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0E2F21] text-white flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#555958] text-white flex items-center justify-center p-6">
       <div className="text-center">
         <p className="mb-4 text-white/70">
           You've been invited to help organize a competition.

@@ -5,6 +5,7 @@ import { useCompetitionSquadStore } from "@/lib/store/competitionSquadStore";
 import { compressImage } from "@/lib/utils/compressPlayerImage";
 import { POSITION_GROUPS } from "@/lib/types";
 import { useDebouncedCompetitionSave } from "@/lib/hooks/useDebouncedCompetitionSave";
+import { Select } from "./ui/Select";
 
 export function CompetitionSquadForm({
   maxSquadSize,
@@ -67,7 +68,7 @@ export function CompetitionSquadForm({
           onChange={(e) => setName(e.target.value)}
           placeholder="Player name"
           required
-          className="bg-[#0E2F21] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+          className="bg-[#0a1a14] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
         <input
           value={number}
@@ -79,21 +80,17 @@ export function CompetitionSquadForm({
           max={99}
           placeholder="No."
           required
-          className="no-spinner bg-[#0E2F21] rounded-lg px-3 py-2 w-20 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
+          className="no-spinner bg-[#0a1a14] rounded-lg px-3 py-2 w-20 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
         />
-        <select
-          value={positionGroup}
-          onChange={(e) =>
-            setPositionGroup(e.target.value as (typeof POSITION_GROUPS)[number])
+        <Select
+          name="positionGroup"
+          ariaLabel="Select position group"
+          defaultValue={positionGroup}
+          onChange={(value) =>
+            setPositionGroup(value as (typeof POSITION_GROUPS)[number])
           }
-          className="bg-[#0E2F21] rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-[#3CEFA1]"
-        >
-          {POSITION_GROUPS.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
+          options={POSITION_GROUPS}
+        />
         <input
           type="file"
           accept="image/*"

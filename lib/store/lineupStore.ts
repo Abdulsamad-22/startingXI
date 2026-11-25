@@ -34,7 +34,8 @@ export type LineupState = {
     | "stadium"
     | "elite"
     | "super"
-    | "sold_xi";
+    | "sold_xi"
+    | "world_cup";
   pitchPattern: "solid" | "stripe" | "circle";
   pitchBgColor: string;
   pitchStripeColor: string;

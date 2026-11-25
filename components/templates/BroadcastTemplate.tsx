@@ -12,6 +12,7 @@ export function BroadcastTemplate({ children }: { children: React.ReactNode }) {
     crestUrl,
     crestFile,
     primaryColor,
+    pitchStyle,
   } = useLineupStore();
   const crestSrc = crestFile ? URL.createObjectURL(crestFile) : crestUrl;
 
@@ -49,7 +50,11 @@ export function BroadcastTemplate({ children }: { children: React.ReactNode }) {
           {formationName}
         </span>
       </div>
-      <div className="p-4">{children}</div>
+      <div
+        className={`p-4 ${pitchStyle === "tilted" ? "-translate-y-8" : "translate-y-0"}`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

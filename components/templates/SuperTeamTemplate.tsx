@@ -12,6 +12,7 @@ export function SuperTeamTemplate({ children }: { children: React.ReactNode }) {
     crestUrl,
     crestFile,
     primaryColor,
+    pitchStyle,
   } = useLineupStore();
   const crestSrc = crestFile ? URL.createObjectURL(crestFile) : crestUrl;
 
@@ -88,7 +89,11 @@ export function SuperTeamTemplate({ children }: { children: React.ReactNode }) {
 
       {/* Pitch + players */}
 
-      <div className="relative">{children}</div>
+      <div
+        className={`relative ${pitchStyle === "tilted" ? "-translate-y-8" : "translate-y-0"}`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

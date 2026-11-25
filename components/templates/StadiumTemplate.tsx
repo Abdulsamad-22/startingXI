@@ -12,6 +12,7 @@ export function StadiumTemplate({ children }: { children: React.ReactNode }) {
     crestUrl,
     crestFile,
     primaryColor,
+    pitchStyle,
   } = useLineupStore();
   const crestSrc = crestFile ? URL.createObjectURL(crestFile) : crestUrl;
 
@@ -57,7 +58,11 @@ export function StadiumTemplate({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      <div className="relative">{children}</div>
+      <div
+        className={`relative ${pitchStyle === "tilted" ? "-translate-y-8" : "translate-y-0"}`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

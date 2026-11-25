@@ -15,6 +15,7 @@ import { waitForImagesToLoad } from "@/lib/utils/waitForImages";
 import { consumeAccess, hasUnusedAccess } from "@/app/payments/action";
 import { SuperTeamTemplate } from "./templates/SuperTeamTemplate";
 import { SoldXITemplate } from "./templates/SoldXITemplate";
+import { WorldCupTemplate } from "./templates/WorldCupTemplate";
 
 const TEMPLATES = {
   classic: ClassicTemplate,
@@ -23,6 +24,7 @@ const TEMPLATES = {
   elite: EliteTemplate,
   super: SuperTeamTemplate,
   sold_xi: SoldXITemplate,
+  world_cup: WorldCupTemplate,
 };
 
 const TEMPLATE_FEATURE: Record<string, PaidFeature | null> = {
@@ -32,6 +34,7 @@ const TEMPLATE_FEATURE: Record<string, PaidFeature | null> = {
   elite: "template_elite",
   super: "template_super",
   sold_xi: null,
+  world_cup: null,
 };
 
 export function ExportCard({ children }: { children: React.ReactNode }) {

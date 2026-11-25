@@ -7,7 +7,14 @@ import { useEffect, useState } from "react";
 import { PaymentGate } from "./PaymentGate";
 
 const OPTIONS: {
-  id: "classic" | "broadcast" | "stadium" | "elite" | "super" | "sold_xi";
+  id:
+    | "classic"
+    | "broadcast"
+    | "stadium"
+    | "elite"
+    | "super"
+    | "sold_xi"
+    | "world_cup";
   label: string;
   feature: PaidFeature | null;
 }[] = [
@@ -17,6 +24,7 @@ const OPTIONS: {
   { id: "elite", label: "Elite", feature: "template_elite" },
   { id: "super", label: "Super Team", feature: "template_super" },
   { id: "sold_xi", label: "Sold XI", feature: null },
+  { id: "world_cup", label: "World Cup", feature: null },
 ];
 
 function ClassicSwatch({ color }: { color: string }) {
@@ -204,6 +212,63 @@ function SoldXISwatch({ color }: { color: string }) {
   );
 }
 
+function WorldCupSwatch({ color }: { color: string }) {
+  const band = (
+    <>
+      <div className="absolute inset-0" style={{ backgroundColor: color }} />
+      <div
+        className="absolute inset-y-0 right-0 w-1/2 bg-black/40"
+        style={{ clipPath: "polygon(15% 0, 100% 0, 100% 100%, 0 100%)" }}
+      />
+    </>
+  );
+
+  return (
+    <div className="w-16 h-20 rounded-md p-1.5 pt-2.5 flex flex-col items-center gap-1 relative overflow-hidden bg-black">
+      {/* Top and bottom bands */}
+      <div className="absolute top-0 left-0 right-0 h-1 overflow-hidden">
+        {band}
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden">
+        {band}
+      </div>
+
+      {/* Title */}
+      <div
+        className="relative w-10 h-2 rounded-[1px] bg-white"
+        style={{ boxShadow: "0 0 6px rgba(255,255,255,0.6)" }}
+      />
+
+      {/* Player dots */}
+      <div className="relative flex-1 w-full flex flex-col justify-around items-center py-0.5">
+        {[1, 2, 2, 2, 1].map((n, row) => (
+          <div key={row} className="flex gap-3">
+            {Array.from({ length: n }).map((_, i) => (
+              <span
+                key={i}
+                className="w-1.5 h-1.5 rounded-[2px]"
+                style={{ backgroundColor: row === 4 ? "#38d6c8" : "#1e3a8a" }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Footer: crest + date line */}
+      <div className="relative flex flex-col items-center gap-0.5 mb-0.5">
+        <div
+          className="w-3.5 h-2.5 rounded-tl-[1px] rounded-tr-[5px]"
+          style={{
+            border: `1px solid ${color}`,
+            backgroundColor: `${color}55`,
+          }}
+        />
+        <div className="w-8 h-1 rounded-[1px] bg-white/80" />
+      </div>
+    </div>
+  );
+}
+
 const SWATCHES = {
   classic: ClassicSwatch,
   broadcast: BroadcastSwatch,
@@ -211,6 +276,7 @@ const SWATCHES = {
   elite: EliteSwatch,
   super: SuperTeamSwatch,
   sold_xi: SoldXISwatch,
+  world_cup: WorldCupSwatch,
 };
 
 function LockIcon() {
